@@ -766,7 +766,8 @@ class Modem(object):
         global SET_VOICE_COMPRESSION, DISABLE_SILENCE_DETECTION, \
             ENABLE_SILENCE_DETECTION_5_SECS, ENABLE_SILENCE_DETECTION_10_SECS, \
             DTE_RAISE_VOLUME, DTE_LOWER_VOLUME, DTE_END_VOICE_DATA_TX, \
-            DTE_END_VOICE_DATA_RX, DTE_CLEAR_TRANSMIT_BUFFER
+            DTE_END_VOICE_DATA_RX, DTE_CLEAR_TRANSMIT_BUFFER, \
+            ENABLE_FORMATTED_CID
 
         # Test if connected to a modem using basic AT command.
         if not self._send("AT"):

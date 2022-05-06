@@ -67,6 +67,7 @@ default_config = {
     "EMAIL_SERVER_PASSWORD": 'password to log into the SMTP server',
     "EMAIL_FROM": 'e-mail address to appear in the "From:" header',
     "EMAIL_TO": 'e-mail address to send the voicemail notification to',
+    "EMAIL_WAVE_ATTACHMENT": False,
 
     "GPIO_LED_RING_PIN": 14,
     "GPIO_LED_RING_BRIGHTNESS": 100,

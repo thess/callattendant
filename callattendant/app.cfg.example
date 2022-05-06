@@ -213,6 +213,8 @@ EMAIL_SERVER_USERNAME = 'user name to log into the SMTP server'
 EMAIL_SERVER_PASSWORD = 'password to log into the SMTP server'
 EMAIL_FROM = 'e-mail address to appear in the "From:" header'
 EMAIL_TO = 'e-mail address(es) to send the voicemail notification to, one string, comma-separated'
+# Set to True to attach VM wave file to message
+EMAIL_WAVE_ATTACHMENT = False
 
 # GPIO_LED_..._PIN: These values are the GPIO pin numbers attached to the LED indicators
 # GPIO_LED_..._BRIGHTNESS: These values are a percentage of brightness for the LED indicators when on.
