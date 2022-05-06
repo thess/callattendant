@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Regex Lists{% endblock %}
+
+{% block content %}
+<style>
+textarea
+{
+  resize: none;
+  font-family: monospace;
+  width: 90%
+}
+</style>
+
+<div class="container mb-2">
+  <h2><span class="px-2">Regular Expression Lists</span>
+   <a href="https://github.com/emxsys/callattendant/wiki/User-Guide#managing-blocked-numbers">
+    <img class="float-right" src="../static/info-circle.svg" alt="" width="32" height="32">
+   </a>
+  </h2>
+
+  <button id="save-button" type="button" class="btn btn-primary" style="float: right;" disabled>Save</button>
+  <p>Edit the Block (blacklist) and Permit (whitelist) regular expressions here. Each line of text should have the format:
+  <br/><code style="margin-left: 3em">&lt;regex&gt; [: &lt;description&gt;]</code><br/>
+  that is, a <a href="https://docs.python.org/3/library/re.html#regular-expression-syntax" target="_blank">regular expression</a>,
+  optionally followed by a colon and a human-readable description of who is being black or whitelisted.</p>
+  <p>Regular expressions for names are case-insensitive.</p>
+  <form id="regexlistsform" style="margin-top: 2em;">
+      <div class="mb-2" style="width: 100%; display: table;">
+        <div style="display: table-row;">
+            <div style="width: 50%; display: table-cell;">
+              <h3><label for="blocknameslist">Block Names List:</label></h3>
+
+              <textarea id="blocknameslist" name="blocknameslist" rows="10" oninput="document.getElementById('save-button').disabled = false">{{ blocknameslist }}</textarea>
+            </div>
+            <div style="display: table-cell;">
+              <h3><label for="blocknumberslist">Block Numbers List:</label></h3>
+
+              <textarea id="blocknumberslist" name="blocknumberslist" rows="10" oninput="document.getElementById('save-button').disabled = false">{{ blocknumberslist }}</textarea>
+            </div>
+        </div>
+        <div style="display: table-row;">
+            <div style="width: 50%; display: table-cell;">
+              <h3><label for="permitnameslist">Permit Names List:</label></h3>
+
+              <textarea id="permitnameslist" name="permitnameslist" rows="10" oninput="document.getElementById('save-button').disabled = false">{{ permitnameslist }}</textarea>
+            </div>
+            <div style="display: table-cell;">
+              <h3><label for="permitnumberslist">Permit Numbers List:</label></h3>
+
+              <textarea id="permitnumberslist" name="permitnumberslist" rows="10" oninput="document.getElementById('save-button').disabled = false">{{ permitnumberslist }}</textarea>
+            </div>
+        </div>
+      </div>
+  </form>
+
+  <button id="back-button" type="button" class="btn btn-secondary">Back</button>
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+// Go back to the original referrer
+$('#back-button').on('click', function (event) {
+    history.back()
+});
+
+// Save
+$('#save-button').on('click', function (event) {
+    var data = $('#regexlistsform').serialize();
+    $.post(
+        "/callers/regexlists/save",
+        data,
+        function(data, status) {
+            alert("Save returned " + status);
+            if (status == success)
+                $('#save-button').disabled = true;
+        }
+    );
+});
+</script>
+{% endblock %}

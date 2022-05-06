@@ -41,7 +41,10 @@
           <li class="nav-item" id="blocked">
             <a class="nav-link" href="/callers/blocked">Blocked</a>
           </li>
-          <li class="nav-item" id="messages">
+           <li class="nav-item" id="regexlists">
+            <a class="nav-link" href="/callers/regexlists">Regex Lists</a>
+          </li>
+         <li class="nav-item" id="messages">
             <a class="nav-link" href="/messages">Messages</a>
           </li>
         </ul>
@@ -86,7 +89,11 @@
         </ul>
       </div>
     </div>
+    <div>
+       <button id="permit-next-call-button" type="button" class="btn btn-primary">Permit Next Call</button>
+    </div>
   </nav>
+
 
   {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -127,6 +134,12 @@
       {% if active_nav_item %}
         $('#{{ active_nav_item }}').addClass('active');
       {% endif %}
+    });
+
+    $('#permit-next-call-button').on('click', function (event) {
+      $.get(" /callers/permitnextcall", "", function(data, status) {
+        alert("Next call will be permitted.");
+      });
     });
   </script>
 </body>

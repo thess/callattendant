@@ -39,6 +39,7 @@ from hardware.modem import Modem
 from hardware.indicators import ApprovedIndicator, BlockedIndicator
 from messaging.voicemail import VoiceMail
 import userinterface.webapp as webapp
+import nextcall
 
 
 class CallAttendant(object):
@@ -149,8 +150,15 @@ class CallAttendant(object):
                 action = ""
                 reason = ""
 
+                # Check the Next Call Permitted
+                print("> Checking next-call-permitted")
+                if nextcall.is_next_call_permitted(self.config['PERMIT_NEXT_CALL_FLAG']):
+                    caller_permitted = True
+                    action = "Permitted"
+                    self.approved_indicator.blink()
+
                 # Check the whitelist
-                if "whitelist" in screening_mode:
+                if not caller_permitted and "whitelist" in screening_mode:
                     print("> Checking whitelist(s)")
                     is_whitelisted, reason = self.screener.is_whitelisted(caller)
                     if is_whitelisted:

@@ -32,13 +32,15 @@ default_config = {
     "PHONE_DISPLAY_FORMAT": "###-###-####",
 
     "BLOCK_ENABLED": True,
-    "BLOCK_SERVICE": "NOMOROBO",
+    "BLOCK_SERVICE": "",
 
-    "BLOCK_NAME_PATTERNS": {"V[0-9]{15}": "Telemarketer Caller ID", },
-    "BLOCK_NUMBER_PATTERNS": {},
+    "BLOCK_NAME_PATTERNS": 'blocknameslist.txt',
+    "BLOCK_NUMBER_PATTERNS": 'blocknumberslist.txt',
 
-    "PERMIT_NAME_PATTERNS": {},
-    "PERMIT_NUMBER_PATTERNS": {},
+    "PERMIT_NAME_PATTERNS": 'permitnameslist.txt',
+    "PERMIT_NUMBER_PATTERNS": 'permitnumberslist.txt',
+
+    "PERMIT_NEXT_CALL_FLAG": 'permitnextcall.flag',
 
     "BLOCKED_ACTIONS": ("answer", "greeting", "voice_mail"),
     "BLOCKED_GREETING_FILE": "resources/blocked_greeting.wav",
@@ -59,6 +61,13 @@ default_config = {
     "VOICE_MAIL_MENU_FILE": "resources/voice_mail_menu.wav",
     "VOICE_MAIL_MESSAGE_FOLDER": "messages",
 
+    "EMAIL_SERVER": "SMTP server",
+    "EMAIL_PORT": 465,
+    "EMAIL_SERVER_USERNAME": 'user name to log into the SMTP server',
+    "EMAIL_SERVER_PASSWORD": 'password to log into the SMTP server',
+    "EMAIL_FROM": 'e-mail address to appear in the "From:" header',
+    "EMAIL_TO": 'e-mail address to send the voicemail notification to',
+
     "GPIO_LED_RING_PIN": 14,
     "GPIO_LED_RING_BRIGHTNESS": 100,
     "GPIO_LED_APPROVED_PIN": 15,
@@ -69,6 +78,7 @@ default_config = {
     "GPIO_LED_MESSAGE_BRIGHTNESS": 100,
     "GPIO_LED_MESSAGE_COUNT_PINS": (8, 7, 27, 23, 10, 11, 9, 18),
     "GPIO_LED_MESSAGE_COUNT_KWARGS": {"active_high": True},
+
 }
 
 
@@ -141,19 +151,27 @@ class Config(dict):
         if not datapath:
             return
 
-        self["DB_FILE"] = os.path.join(datapath, self["DATABASE"])
+        self["DB_FILE"] = os.path.normpath(os.path.join(datapath, self["DATABASE"]))
 
-        self["BLOCKED_GREETING_FILE"] = os.path.join(rootpath, self["BLOCKED_GREETING_FILE"])
-        self["SCREENED_GREETING_FILE"] = os.path.join(rootpath, self["SCREENED_GREETING_FILE"])
-        self["PERMITTED_GREETING_FILE"] = os.path.join(rootpath, self["PERMITTED_GREETING_FILE"])
+        self["BLOCKED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["BLOCKED_GREETING_FILE"]))
+        self["SCREENED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["SCREENED_GREETING_FILE"]))
+        self["PERMITTED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["PERMITTED_GREETING_FILE"]))
 
-        self["VOICE_MAIL_GREETING_FILE"] = os.path.join(rootpath, self["VOICE_MAIL_GREETING_FILE"])
-        self["VOICE_MAIL_GOODBYE_FILE"] = os.path.join(rootpath, self["VOICE_MAIL_GOODBYE_FILE"])
-        self["VOICE_MAIL_LEAVE_MESSAGE_FILE"] = os.path.join(rootpath, self["VOICE_MAIL_LEAVE_MESSAGE_FILE"])
-        self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.join(rootpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"])
-        self["VOICE_MAIL_MENU_FILE"] = os.path.join(rootpath, self["VOICE_MAIL_MENU_FILE"])
+        self["VOICE_MAIL_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_GREETING_FILE"]))
+        self["VOICE_MAIL_GOODBYE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_GOODBYE_FILE"]))
+        self["VOICE_MAIL_LEAVE_MESSAGE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_LEAVE_MESSAGE_FILE"]))
+        self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"]))
+        self["VOICE_MAIL_MENU_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_MENU_FILE"]))
 
-        self["VOICE_MAIL_MESSAGE_FOLDER"] = os.path.join(datapath, self["VOICE_MAIL_MESSAGE_FOLDER"])
+        self["BLOCK_NAME_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NAME_PATTERNS"]))
+        self["BLOCK_NUMBER_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NUMBER_PATTERNS"]))
+
+        self["PERMIT_NAME_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NAME_PATTERNS"]))
+        self["PERMIT_NUMBER_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NUMBER_PATTERNS"]))
+
+        self["PERMIT_NEXT_CALL_FLAG"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NEXT_CALL_FLAG"]))
+
+        self["VOICE_MAIL_MESSAGE_FOLDER"] = os.path.normpath(os.path.join(datapath, self["VOICE_MAIL_MESSAGE_FOLDER"]))
 
     def validate(self):
         """

@@ -50,6 +50,8 @@ from screening.query_db import query_db
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from messaging.voicemail import Message
+import listfiles
+import nextcall
 
 # Create the Flask micro web-framework application
 app = Flask(__name__)
@@ -560,7 +562,7 @@ def callers_blocked():
         format_total=True,
         format_number=True,
     )
-    # Render the resullts with pagination
+    # Render the results with pagination
     return render_template(
         'callers_blocked.html',
         active_nav_item='blocked',
@@ -709,6 +711,11 @@ def callers_permitted_delete(phone_no):
     whitelist.remove_number(number)
 
     return redirect("/callers/permitted", code=301)  # (re)moved permamently
+
+@app.route('/callers/permitnextcall')
+def Callers_permit_next_call():
+    nextcall.permit_next_call(current_app.config.get("MASTER_CONFIG").get("PERMIT_NEXT_CALL_FLAG"))
+    return 'Next call will be permitted.'
 
 
 @app.route('/messages')
@@ -863,6 +870,33 @@ def settings():
         config_file=file_path,
         curr_settings=curr_settings,
         file_settings=file_settings)
+
+@app.route('/callers/regexlists')
+def callers_regexlists():
+    config = current_app.config.get("MASTER_CONFIG")
+
+    # Render the page
+    return render_template(
+        'callers_regexlists.html',
+        active_nav_item='regexlists',
+        blocknameslist=listfiles.read_list_file_text(config.get('BLOCK_NAME_PATTERNS')),
+        blocknumberslist=listfiles.read_list_file_text(config.get('BLOCK_NUMBER_PATTERNS')),
+        permitnameslist=listfiles.read_list_file_text(config.get('PERMIT_NAME_PATTERNS')),
+        permitnumberslist=listfiles.read_list_file_text(config.get('PERMIT_NUMBER_PATTERNS')),
+    )
+
+import json
+
+@app.route('/callers/regexlists/save', methods=['POST'])
+def callers_regexlists_save():
+    config = current_app.config.get("MASTER_CONFIG")
+
+    listfiles.write_list_file_text(config.get('BLOCK_NAME_PATTERNS'), request.form['blocknameslist'])
+    listfiles.write_list_file_text(config.get('BLOCK_NUMBER_PATTERNS'), request.form['blocknumberslist'])
+    listfiles.write_list_file_text(config.get('PERMIT_NAME_PATTERNS'), request.form['permitnameslist'])
+    listfiles.write_list_file_text(config.get('PERMIT_NUMBER_PATTERNS'), request.form['permitnumberslist'])
+
+    return 'updated';
 
 
 def format_phone_no(number):

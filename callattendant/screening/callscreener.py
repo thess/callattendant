@@ -30,6 +30,7 @@ import sys
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from screening.nomorobo import NomoroboService
+import listfiles
 
 
 class CallScreener(object):
@@ -46,16 +47,19 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking permitted patterns...")
-                for key in permit["name_patterns"].keys():
-                    match = re.search(key, name)
+                list = listfiles.read_list_file_list(permit["name_patterns"])
+                for key in list.keys():
+                    match = re.search(key, name, re.IGNORECASE)
                     if match:
-                        reason = permit["name_patterns"][key]
+                        reason = list[key]
                         print(reason)
                         return True, reason
-                for key in permit["number_patterns"].keys():
+
+                list = listfiles.read_list_file_list(permit["number_patterns"])
+                for key in list.keys():
                     match = re.search(key, number)
                     if match:
-                        reason = permit["number_patterns"][key]
+                        reason = list[key]
                         print(reason)
                         return True, reason
                 return False, "Not found"
@@ -73,16 +77,19 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking blocked patterns...")
-                for key in block["name_patterns"].keys():
-                    match = re.search(key, name)
+                list = listfiles.read_list_file_list(block["name_patterns"])
+                for key in list.keys():
+                    match = re.search(key, name, re.IGNORECASE)
                     if match:
-                        reason = block["name_patterns"][key]
+                        reason = list[key]
                         print(reason)
                         return True, reason
-                for key in block["number_patterns"].keys():
+
+                list = listfiles.read_list_file_list(block["number_patterns"])
+                for key in list.keys():
                     match = re.search(key, number)
                     if match:
-                        reason = block["number_patterns"][key]
+                        reason = list[key]
                         print(reason)
                         return True, reason
                 if block["service"].upper() == "NOMOROBO":

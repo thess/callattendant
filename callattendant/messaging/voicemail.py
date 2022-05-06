@@ -27,6 +27,7 @@ import os
 import threading
 from datetime import datetime
 from messaging.message import Message
+import smtplib, ssl
 from hardware.indicators import MessageIndicator, MessageCountIndicator, \
         GPIO_MESSAGE, GPIO_MESSAGE_COUNT_PINS, GPIO_MESSAGE_COUNT_KWARGS
 
@@ -149,6 +150,20 @@ class VoiceMail:
         if self.modem.record_audio(filepath, detect_silence):
             # Save to Message table (message.add will update the indicator)
             msg_no = self.messages.add(call_no, filepath)
+
+            # Send an e-mail notification
+            if self.config["EMAIL_ENABLE"]:
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(self.config["EMAIL_SERVER"], self.config["EMAIL_PORT"], context=context) as server:
+                    server.login(self.config["EMAIL_SERVER_USERNAME"], self.config["EMAIL_SERVER_PASSWORD"])
+                    message = f"""Subject: Phone  message recorded
+From: {self.config["EMAIL_FROM"]}
+To: {self.config["EMAIL_TO"]}
+
+Caller {caller["NMBR"]}, {caller["NAME"]} left a message.
+"""
+                    server.sendmail(self.config["EMAIL_FROM"], self.config["EMAIL_TO"].split(','), message)
+
             # Return the messageID on success
             return msg_no
         else:

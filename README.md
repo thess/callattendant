@@ -1,4 +1,5 @@
 # Call Attendant
+
 ![PyPI](https://img.shields.io/pypi/v/callattendant?style=flat&link=https://pypi.org/project/callattendant/) ![PyPI - License](https://img.shields.io/pypi/l/callattendant?link=https://github.com/emxsys/callattendant/blob/master/LICENSE) ![PyPI - Status](https://img.shields.io/pypi/status/callattendant) ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/emxsys/callattendant/callattendant)
 
 #### `pip install callattendant`
@@ -19,19 +20,43 @@ by filing [issues](https://github.com/emxsys/callattendant/issues), joining the
 Thanks!_
 
 #### Support Links
+
 - [Web Page](https://emxsys.github.io/callattendant/)
 - [Wiki](https://github.com/emxsys/callattendant/wiki)
 - [Forum](https://groups.io/g/callattendant)
 
 #### Table of Contents
+
 - [Overview](#overview)
 - [Quick Start](#quick-start)
 
+## Differences between [emxsys](https://github.com/emxsys)/**[callattendant](https://github.com/emxsys/callattendant)** and this fork.
+
+This fork extends the regular-expression checking for blocked and permitted names and numbers.
+
+Four files are added: blocknameslist.txt, blocknumberslist.txt, permitnameslist.txt, and permitnumberslist.txt. Each line in the files has the format:
+
+​    `regular-expression: description`
+
+For example, to block calls whose names end with "PAC" (political action committee) you could add a line to blocknameslist.txt:
+
+​    `PAC$: Political action committee`
+
+That's a regular expression that matches "PAC" at the end of the name.
+
+The web user interface now has a Regex Lists page, where a user can edit the blocks and permit files, adding or removing patterns. It's just free-form editing - somewhat crude, but it gets the job done.
+
+It's now possible for Call Attendant to send an e-mail notification when a caller leaves a message. You'll need to set EMAIL_ variables in the app.cfg file (see the app.cfg.example file).
+
+Also, I have added a "Permit Next Call" button. Click it, and the next incoming call to your phone will be permitted. This is useful if you're doing 2-factor-authentication on some site, and you expect them to call you with a code.
+
 ## Overview
+
 The Call Attendant (__callattendant__) is a python-based, automated call attendant that runs on a
 lightweight Raspberry Pi, or other Linux-based system, coupled with a US Robotics 5637 USB modem.
 
 #### How it works
+
 The Raspberry Pi and modem are connected to your home phone system in parallel with your phone
 handset(s). When an incoming call is received, the call goes to both your phone and the
 __callattendant__. During the period of the first ring the __callattendant__ analyzes the caller ID,
@@ -42,12 +67,13 @@ The __callattendant__'s filtering mechanisms include an online lookup service, a
 a blocked number list and pattern matching on the caller's number and/or name.
 
 #### Features include:
+
 - A call blocker that intercepts robocallers and blocked numbers at or before the first ring
 - Permitted numbers pass straight through to the local phone system for normal call ringing and answering
 - Visual indicators to show whether the incoming call is from a permitted, blocked, or unknown number
 - Call details, permitted numbers, and blocked numbers are available in a web-based user interface
 - Calls can be handled by a voice messaging system that optioanlly requires human interaction,
-e.g, "Press 1 to leave a message"
+  e.g, "Press 1 to leave a message"
 
 You can review call history, voice messages, permitted and blocked numbers, and performing caller
 management through the Call Attendant's web interface. Here is an example of the home page with metrics
@@ -55,30 +81,34 @@ and a convienient list of recent calls. For a complete description see the
 [User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide).
 
 ##### _Screenshots of the home page as seen on an IPad Pro and a Pixel 2 phone_
+
 ![Dashboard-Responsive](https://github.com/emxsys/callattendant/raw/master/docs/dashboard-responsive.png)
 
 ### Documentation
+
 The project wiki on GitHub contains the documentation for the Call Attendant:
 
 - See the [Wiki Home](https://github.com/emxsys/callattendant/wiki/Home) for complete
-installation, configuration, and operation instructions.
+  installation, configuration, and operation instructions.
 - See the [User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide) section for the
-web interface instructions.
+  web interface instructions.
 - The [Developer Guide](https://github.com/emxsys/callattendant/wiki/Developer-Guide) section
-describes the software architecture and software development plan, and shows you how to setup
-your software development environment.
+  describes the software architecture and software development plan, and shows you how to setup
+  your software development environment.
 - The [Advanced](https://github.com/emxsys/callattendant/wiki/Advanced) section addresses more
-complex setups and situations. For instance, _Running as a Service_.
-
+  complex setups and situations. For instance, _Running as a Service_.
 
 ### Hardware Requirements
+
 The __callattendant__ uses the following hardware:
+
 - [Raspberry Pi 3B+](https://www.amazon.com/ELEMENT-Element14-Raspberry-Pi-Motherboard/dp/B07P4LSDYV/ref=sr_1_4?dchild=1&keywords=raspberry+pi+3&qid=1598057138&sr=8-4) or better
 - [US Robotics 5637 Modem](https://www.amazon.com/gp/product/B0013FDLM0/ref=ppx_yo_dt_b_asin_image_o03_s00?ie=UTF8&psc=1) 
-or the [Zoom 3095 Modem](https://www.amazon.com/Zoom-Model-3095-USB-Modem/dp/B07HHKG6HR). Other Conexant-based
-modems may work.
+  or the [Zoom 3095 Modem](https://www.amazon.com/Zoom-Model-3095-USB-Modem/dp/B07HHKG6HR). Other Conexant-based
+  modems may work.
 
 ##### _Photo of the required hardware: a Raspberry Pi 3B+ and USR5637 modem_
+
 ![Raspberry Pi and USR5637 Modem](https://github.com/emxsys/callattendant/raw/master/docs/raspberry_pi-modem.jpg)
 
 ---
@@ -86,6 +116,7 @@ modems may work.
 ## Quick Start
 
 ### Hardware
+
 You will need a Raspberry Pi running Raspbian or better with access to the Internet for the software
 installation, and ultimately for the the online robocaller lookups. For the project, you will need a
 modem of some sort to do the telephony communications. The **U.S. Robotics USR5637 56K USB Modem** has
@@ -94,12 +125,16 @@ been proven effective. For some installs, it just works, no config needed. It sh
 ---
 
 ### Software
+
 The installation calls for Python3.X.
 
 #### Setup a Virtual Environment
+
 ###### _Optional_
+
 The following instructions create and activate a virtual environment named _venv_ within the
 current folder:
+
 ```bash
 # Install virtualenv - if not installed
 sudo apt install virtualenv
@@ -113,6 +148,7 @@ source venv/bin/activate
 
 Now you're operating with a virtual Python. To check, issue the `which` command and ensure the
 output points to your virtual environment; and also check the Python version:
+
 ```bash
 $ which python
 /home/pi/venv/bin/python
@@ -120,12 +156,15 @@ $ which python
 $ python --version
 Python 3.7.3
 ```
+
 Later, when you install the __callattendant__ software, it will be placed within the virtual environment
 folder (under `lib/python3.x/site-packages` to be exact). The virtual environment, when activated, alters
 your _PATH_ so that the system looks for python and its packages within this folder hierarchy.
 
 #### Install the Software
+
 The software is available on [PyPI](https://pypi.org/project/callattendant/). Install and update using `pip`:
+
 ```bash
 # Using the virtual environment you use "pip" to install the software
 pip install callattendant
@@ -167,6 +206,7 @@ callattendant --config myapp.cfg --data-path /var/lib/callattendant
 ```
 
 You should see output of the form:
+
 ```
 Command line options:
   --config=app.cfg
@@ -221,7 +261,6 @@ Waiting for call...
    WARNING: This is a development server. Do not use it in a production deployment.
    Use a production WSGI server instead.
  * Debug mode: off
-
 ```
 
 Make a few calls to yourself to test the service. The standard output will show the
@@ -233,9 +272,12 @@ Press `ctrl-c` to shutdown the system
 ---
 
 ### Web Interface
+
 #### URL: `http://<pi-address>|<pi-hostname>:5000`
+
 To view the web interface, simply point your web browser to port `5000` on your Raspberry Pi.
 For example, in your Raspberry Pi's browser, you can use:
+
 ```
 http://localhost:5000/
 ```
@@ -245,6 +287,7 @@ See the [User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide) fo
 ---
 
 ### Configuration
+
 The Call Attendant's behavior can be controlled by a configuration file. To override the default
 configuration, open the  the `~/.callattenant/app.cfg` and edit its contents.
 
@@ -253,9 +296,11 @@ nano ~/.callattendant/app.cfg
 ```
 
 Then specify the configuration file and path on the command line, e.g.:
+
 ```
 callattendant --config app.cfg
 ```
+
 See the [Configuration](https://github.com/emxsys/callattendant/wiki/Home#configuration)
 section in the project's wiki for more information.
 

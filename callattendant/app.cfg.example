@@ -67,25 +67,32 @@ SCREENING_MODE = ("whitelist", "blacklist")
 BLOCK_ENABLED = True
 
 
-# BLOCK_NAME_PATTERNS: Block calls based on a RegEx expression dict applied
-# to the CID names: {"regex": "description", ... }
-#   Example: {"V[0-9]{15}": "Telemarketer Caller ID", "O": "Unknown caller"}
-BLOCK_NAME_PATTERNS = {"V[0-9]{15}": "Telemarketer Caller ID", }
+# BLOCK_NAME_PATTERNS: Block calls based on a file containing RegEx expressions
+# to the CID names: regex: description
+#   Example: V[0-9]{15} Telemarketer Caller ID
+#            O: Unknown caller
+BLOCK_NAME_PATTERNS = 'blocknameslist.txt'
 
-# BLOCK_NUMBER_PATTERNS: Block calls based on a dict of regular expressions
-# applied to the CID numbers: {"regex": "description", ... }
-#   Example: {"P": "Private number", "O": "Out of area",}
-BLOCK_NUMBER_PATTERNS = {}
+# BLOCK_NUMBER_PATTERNS: Block calls based on a file containing RegEx expressions
+# applied to the CID numbers: regex: description
+#   Example: P: Private number
+#            O: Out of area
+BLOCK_NUMBER_PATTERNS = 'blocknumberslist.txt'
 
-# PERMIT_NAME_PATTERNS: Permit calls based on a RegEx expression dict
-# applied to the CID names: {"regex": "description", ... }
-#   Example: {".*DOE": "Family", ".*SCHOOL": "Schools", }
-PERMIT_NAME_PATTERNS = {}
+# PERMIT_NAME_PATTERNS: Permit calls based on a file containing RegEx expressions
+# applied to the CID names: regex: description
+#   Example: .*DOE: Family
+#            .*SCHOOL: Schools
+PERMIT_NAME_PATTERNS = 'permitnameslist.txt'
 
-# PERMIT_NUMBER_PATTERNS: Permit calls based on a regx expression dict
-# applied to the CID numbers: {"regex": "description", ... }
-#   Example: {"01628": "My area", }
-PERMIT_NUMBER_PATTERNS = {}
+# PERMIT_NUMBER_PATTERNS: Permit calls based on a file containing RegEx expressions
+# applied to the CID numbers: regex: description
+#   Example: 01628: My area
+PERMIT_NUMBER_PATTERNS = 'permitnumberslist.txt'
+
+# PERMIT_NEXT_CALL_FLAG: Temporary file, created and destroyed by the app,
+# to indicate whether the next incoming call should be permitted.
+PERMIT_NEXT_CALL_FLAG = 'permitnextcall.flag'
 
 
 # BLOCK_SERVICE: The name of the online service used to lookup robocallers and spam numbers.
@@ -194,6 +201,18 @@ VOICE_MAIL_MENU_FILE = "resources/voice_mail_menu.wav"
 # VOICE_MAIL_MESSAGE_FOLDER: The folder where voice mail message are stored
 #   This should not be changed/overridden except during development/testing
 #VOICE_MAIL_MESSAGE_FOLDER = "messages"
+
+# EMAIL settings are used to send an e-mail notification when a message is recorded
+# EMAIL_ENABLE is True to enable sending e-mails when message are recorded. If set
+# to True, the other EMAIL settings must have valid values.
+EMAIL_ENABLE = False
+
+EMAIL_SERVER = "SMTP server"
+EMAIL_PORT = 465
+EMAIL_SERVER_USERNAME = 'user name to log into the SMTP server'
+EMAIL_SERVER_PASSWORD = 'password to log into the SMTP server'
+EMAIL_FROM = 'e-mail address to appear in the "From:" header'
+EMAIL_TO = 'e-mail address(es) to send the voicemail notification to, one string, comma-separated'
 
 # GPIO_LED_..._PIN: These values are the GPIO pin numbers attached to the LED indicators
 # GPIO_LED_..._BRIGHTNESS: These values are a percentage of brightness for the LED indicators when on.
