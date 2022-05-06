@@ -167,7 +167,7 @@ SCREENED_RINGS_BEFORE_ANSWER = 0
 # PERMITTED_ACTIONS:  A tuple containing a combination of the following actions:
 #   "ignore" OR a combo of "answer", "greeting", "record_message", "voice_mail".
 # See BLOCKED_ACTIONS for more info.
-PERMITTED_ACTIONS = ("ignore")
+PERMITTED_ACTIONS = ("ignore",)
 
 # PERMITTED_GREETING_FILE: The wav file to be played to allowed callers.
 #   Example: "I'm sorry, I can't take your call."
