@@ -42,8 +42,6 @@ import wave
 from datetime import datetime
 from pprint import pprint
 
-from hardware.indicators import RingIndicator
-
 # ACSII codes
 DLE_CODE = chr(16)      # Data Link Escape (DLE) code
 ETX_CODE = chr(3)       # End Transmission (ETX) code
@@ -148,9 +146,15 @@ class Modem(object):
         self._thread = None
 
         # Ring notifications
-        self.ring_indicator = RingIndicator(
-            self.config.get("GPIO_LED_RING_PIN"),
-            self.config.get("GPIO_LED_RING_BRIGHTNESS", 100))
+        if self.config["GPIO_ENABLED"]:
+            from hardware.indicators import RingIndicator
+            self.ring_indicator = RingIndicator(
+                self.config.get("GPIO_LED_RING_PIN"),
+                self.config.get("GPIO_LED_RING_BRIGHTNESS", 100))
+        else:
+           from hardware.nullgpio import RingIndicator
+           self.ring_indicator = RingIndicator()
+
         self.ring_event = threading.Event()
 
         # Initialize the serial port attached to the physical modem
@@ -789,7 +793,7 @@ class Modem(object):
                 DISABLE_SILENCE_DETECTION = DISABLE_SILENCE_DETECTION_CONEXANT
                 ENABLE_SILENCE_DETECTION_5_SECS = ENABLE_SILENCE_DETECTION_5_SECS_CONEXANT
                 ENABLE_SILENCE_DETECTION_10_SECS = ENABLE_SILENCE_DETECTION_10_SECS_CONEXANT
-		ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT;
+                ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT;
                 # System DLE shielded codes (double DLE) - DTE to DCE commands
                 DTE_RAISE_VOLUME = (chr(16) + chr(16) + chr(117))                # <DLE><DLE>-u
                 DTE_LOWER_VOLUME = (chr(16) + chr(16) + chr(100))                # <DLE><DLE>-d

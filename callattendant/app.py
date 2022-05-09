@@ -36,7 +36,6 @@ from config import Config
 from screening.calllogger import CallLogger
 from screening.callscreener import CallScreener
 from hardware.modem import Modem
-from hardware.indicators import ApprovedIndicator, BlockedIndicator
 from messaging.voicemail import VoiceMail
 import userinterface.webapp as webapp
 import nextcall
@@ -67,13 +66,21 @@ class CallAttendant(object):
         self._caller_queue = queue.Queue()
 
         #  Hardware subsystem
-        #  Initialize the visual indicators (LEDs)
-        self.approved_indicator = ApprovedIndicator(
-                self.config.get("GPIO_LED_APPROVED_PIN"),
-                self.config.get("GPIO_LED_APPROVED_BRIGHTNESS", 100))
-        self.blocked_indicator = BlockedIndicator(
-                self.config.get("GPIO_LED_BLOCKED_PIN"),
-                self.config.get("GPIO_LED_BLOCKED_BRIGHTNESS", 100))
+        if self.config.get("GPIO_ENABLED"):
+            from hardware.indicators import ApprovedIndicator, BlockedIndicator
+
+            #  Initialize the visual indicators (LEDs)
+            self.approved_indicator = ApprovedIndicator(
+                    self.config.get("GPIO_LED_APPROVED_PIN"),
+                    self.config.get("GPIO_LED_APPROVED_BRIGHTNESS", 100))
+            self.blocked_indicator = BlockedIndicator(
+                    self.config.get("GPIO_LED_BLOCKED_PIN"),
+                    self.config.get("GPIO_LED_BLOCKED_BRIGHTNESS", 100))
+        else:
+            from hardware.nullgpio import ApprovedIndicator, BlockedIndicator
+            self.approved_indicator = ApprovedIndicator()
+            self.blocked_indicator = BlockedIndicator()
+
         #  Create (and open) the modem
         self.modem = Modem(self.config)
         self.config["MODEM_ONLINE"] = self.modem.is_open  # signal the webapp not online

@@ -28,8 +28,6 @@ import threading
 from datetime import datetime
 from messaging.message import Message
 import smtplib, ssl
-from hardware.indicators import MessageIndicator, MessageCountIndicator, \
-        GPIO_MESSAGE, GPIO_MESSAGE_COUNT_PINS, GPIO_MESSAGE_COUNT_KWARGS
 
 from email.mime.audio import MIMEAudio
 from email.mime.multipart import MIMEMultipart
@@ -53,12 +51,20 @@ class VoiceMail:
         self.config["MESSAGE_EVENT"] = self.message_event
 
         # Initialize the message indicators (LEDs)
-        self.message_indicator = MessageIndicator(
-                self.config.get("GPIO_LED_MESSAGE_PIN", GPIO_MESSAGE),
-                self.config.get("GPIO_LED_MESSAGE_BRIGHTNESS", 100))
-        pins = self.config.get("GPIO_LED_MESSAGE_COUNT_PINS", GPIO_MESSAGE_COUNT_PINS)
-        kwargs = self.config.get("GPIO_LED_MESSAGE_COUNT_KWARGS", GPIO_MESSAGE_COUNT_KWARGS)
-        self.message_count_indicator = MessageCountIndicator(*pins, **kwargs)
+        if self.config["GPIO_ENABLED"]:
+            from hardware.indicators import MessageIndicator, MessageCountIndicator, \
+                    GPIO_MESSAGE, GPIO_MESSAGE_COUNT_PINS, GPIO_MESSAGE_COUNT_KWARGS
+
+            self.message_indicator = MessageIndicator(
+                    self.config.get("GPIO_LED_MESSAGE_PIN", GPIO_MESSAGE),
+                    self.config.get("GPIO_LED_MESSAGE_BRIGHTNESS", 100))
+            pins = self.config.get("GPIO_LED_MESSAGE_COUNT_PINS", GPIO_MESSAGE_COUNT_PINS)
+            kwargs = self.config.get("GPIO_LED_MESSAGE_COUNT_KWARGS", GPIO_MESSAGE_COUNT_KWARGS)
+            self.message_count_indicator = MessageCountIndicator(*pins, **kwargs)
+        else:
+            from hardware.nullgpio import MessageIndicator, MessageCountIndicator
+            self.message_indicator = MessageIndicator()
+            self.message_count_indicator = MessageCountIndicator()
 
         # Create the Message object used to interface with the DB
         self.messages = Message(db, config)
@@ -195,12 +201,16 @@ class VoiceMail:
             print("Resetting Message Indicator to show {} unplayed messages".format(unplayed_count))
         if unplayed_count > 0:
             self.message_indicator.pulse()
-            if unplayed_count < 10:
-                self.message_count_indicator.display(unplayed_count)
-                self.message_count_indicator.decimal_point = False
+            if self.config["GPIO_ENABLED"]:
+                if unplayed_count < 10:
+                    self.message_count_indicator.display(unplayed_count)
+                    self.message_count_indicator.decimal_point = False
+                else:
+                    self.message_count_indicator.display(9)
+                    self.message_count_indicator.decimal_point = True
             else:
-                self.message_count_indicator.display(9)
-                self.message_count_indicator.decimal_point = True
+                # Display actual count if not restricted by single digit
+                self.message_count_indicator.display(unplayed_count)
         else:
             self.message_indicator.turn_off()
             self.message_count_indicator.display(' ')

@@ -69,6 +69,7 @@ default_config = {
     "EMAIL_TO": 'e-mail address to send the voicemail notification to',
     "EMAIL_WAVE_ATTACHMENT": False,
 
+    "GPIO_ENABLED": False,
     "GPIO_LED_RING_PIN": 14,
     "GPIO_LED_RING_BRIGHTNESS": 100,
     "GPIO_LED_APPROVED_PIN": 15,
