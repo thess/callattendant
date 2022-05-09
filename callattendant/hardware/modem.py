@@ -146,12 +146,12 @@ class Modem(object):
         self._thread = None
 
         # Ring notifications
-        if self.config["GPIO_ENABLED"]:
+        if self.config["STATUS_INDICATORS"] == "GPIO":
             from hardware.indicators import RingIndicator
             self.ring_indicator = RingIndicator(
                 self.config.get("GPIO_LED_RING_PIN"),
                 self.config.get("GPIO_LED_RING_BRIGHTNESS", 100))
-        else:
+        elif self.config["STATUS_INDICATORS"] == "NULL":
            from hardware.nullgpio import RingIndicator
            self.ring_indicator = RingIndicator()
 

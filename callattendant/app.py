@@ -66,7 +66,7 @@ class CallAttendant(object):
         self._caller_queue = queue.Queue()
 
         #  Hardware subsystem
-        if self.config.get("GPIO_ENABLED"):
+        if self.config.get("STATUS_INDICATORS") == "GPIO":
             from hardware.indicators import ApprovedIndicator, BlockedIndicator
 
             #  Initialize the visual indicators (LEDs)
@@ -76,7 +76,7 @@ class CallAttendant(object):
             self.blocked_indicator = BlockedIndicator(
                     self.config.get("GPIO_LED_BLOCKED_PIN"),
                     self.config.get("GPIO_LED_BLOCKED_BRIGHTNESS", 100))
-        else:
+        elif self.config.get("STATUS_INDICATORS") == "NULL":
             from hardware.nullgpio import ApprovedIndicator, BlockedIndicator
             self.approved_indicator = ApprovedIndicator()
             self.blocked_indicator = BlockedIndicator()

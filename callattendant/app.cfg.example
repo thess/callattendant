@@ -216,6 +216,10 @@ EMAIL_TO = 'e-mail address(es) to send the voicemail notification to, one string
 # Set to True to attach VM wave file to message
 EMAIL_WAVE_ATTACHMENT = False
 
+# Indicator modules can be one of: GPIO, NULL or MQTT. Multiple indicator type not supported.
+# Default is NULL (No special hardware)
+STATUS_INDICATORS = "NULL"
+
 # GPIO_LED_..._PIN: These values are the GPIO pin numbers attached to the LED indicators
 # GPIO_LED_..._BRIGHTNESS: These values are a percentage of brightness for the LED indicators when on.
 GPIO_LED_RING_PIN = 14

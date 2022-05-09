@@ -51,7 +51,7 @@ class VoiceMail:
         self.config["MESSAGE_EVENT"] = self.message_event
 
         # Initialize the message indicators (LEDs)
-        if self.config["GPIO_ENABLED"]:
+        if self.config["STATUS_INDICATORS"] == "GPIO":
             from hardware.indicators import MessageIndicator, MessageCountIndicator, \
                     GPIO_MESSAGE, GPIO_MESSAGE_COUNT_PINS, GPIO_MESSAGE_COUNT_KWARGS
 
@@ -61,7 +61,7 @@ class VoiceMail:
             pins = self.config.get("GPIO_LED_MESSAGE_COUNT_PINS", GPIO_MESSAGE_COUNT_PINS)
             kwargs = self.config.get("GPIO_LED_MESSAGE_COUNT_KWARGS", GPIO_MESSAGE_COUNT_KWARGS)
             self.message_count_indicator = MessageCountIndicator(*pins, **kwargs)
-        else:
+        elif self.config["STATUS_INDICATORS"] == "NULL":
             from hardware.nullgpio import MessageIndicator, MessageCountIndicator
             self.message_indicator = MessageIndicator()
             self.message_count_indicator = MessageCountIndicator()
@@ -201,7 +201,7 @@ class VoiceMail:
             print("Resetting Message Indicator to show {} unplayed messages".format(unplayed_count))
         if unplayed_count > 0:
             self.message_indicator.pulse()
-            if self.config["GPIO_ENABLED"]:
+            if self.config["STATUS_INDICATORS"] == "GPIO":
                 if unplayed_count < 10:
                     self.message_count_indicator.display(unplayed_count)
                     self.message_count_indicator.decimal_point = False
