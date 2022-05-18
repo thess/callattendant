@@ -25,7 +25,7 @@
 
 import os
 import threading
-from datetime import datetime
+import time
 from messaging.message import Message
 from screening.whitelist import Whitelist
 
@@ -149,7 +149,7 @@ class VoiceMail:
             call_no,
             caller["NMBR"],
             caller["NAME"].replace('_', '-'),
-            datetime.now().strftime("%m%d%y_%H%M")))
+            time.strftime("%m%d%y_%H%M")))
 
         # Play instructions to caller
         if msg_file:
@@ -179,9 +179,10 @@ class VoiceMail:
             with smtplib.SMTP_SSL(self.config["EMAIL_SERVER"], self.config["EMAIL_PORT"], context=context) as server:
                 server.login(self.config["EMAIL_SERVER_USERNAME"], self.config["EMAIL_SERVER_PASSWORD"])
                 message = MIMEMultipart()
-                message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
                 message['From'] = self.config["EMAIL_FROM"]
                 message['To'] = self.config["EMAIL_TO"]
+                message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
+                message['Date'] = time.strftime("%a, %d %b %Y %T %z (%Z)")
                 body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n')
                 message.attach(body)
                 if self.config["EMAIL_WAVE_ATTACHMENT"]:
