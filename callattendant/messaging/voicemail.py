@@ -27,8 +27,9 @@ import os
 import threading
 from datetime import datetime
 from messaging.message import Message
-import smtplib, ssl
+from screening.whitelist import Whitelist
 
+import smtplib, ssl
 from email.mime.audio import MIMEAudio
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -68,6 +69,7 @@ class VoiceMail:
 
         # Create the Message object used to interface with the DB
         self.messages = Message(db, config)
+        self.whitelist = Whitelist(db, config)
 
         # Start the thread that monitors the message events and updates the indicators
         self._stop_event = threading.Event()
@@ -103,11 +105,11 @@ class VoiceMail:
 
     def voice_messaging_menu(self, call_no, caller):
         """
-        Play a voice message menu and respond to the choices.
+        Respond to the screening choices.
         """
         # Build some common paths
         voice_mail = self.config.get_namespace("VOICE_MAIL_")
-        voice_mail_menu_file = voice_mail['menu_file']
+        voice_mail_callback_file = voice_mail['callback_file']
         invalid_response_file = voice_mail['invalid_response_file']
         goodbye_file = voice_mail['goodbye_file']
 
@@ -118,7 +120,6 @@ class VoiceMail:
         wait_secs = 8   # Candidate for configuration
         rec_msg = False
         while tries < 3:
-            self.modem.play_audio(voice_mail_menu_file)
             success, digit = self.modem.wait_for_keypress(wait_secs)
             if not success:
                 break
@@ -127,7 +128,8 @@ class VoiceMail:
                 rec_msg = True  # prevent a duplicate reset_message_indicator
                 break
             elif digit == '0':
-                # End this call
+                self.modem.play_audio(voice_mail['callback_file'])
+                self.whitelist.add_caller(caller, "Caller pressed 0")
                 break
             else:
                 # Try again--up to a limit
@@ -176,7 +178,7 @@ class VoiceMail:
         with smtplib.SMTP_SSL(self.config["EMAIL_SERVER"], self.config["EMAIL_PORT"], context=context) as server:
             server.login(self.config["EMAIL_SERVER_USERNAME"], self.config["EMAIL_SERVER_PASSWORD"])
             message = MIMEMultipart()
-            message['Subject'] = 'Voicemail message received from: {caller["NMBR"]}'
+            message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
             message['From'] = self.config["EMAIL_FROM"]
             message['To'] = self.config["EMAIL_TO"]
             body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n')

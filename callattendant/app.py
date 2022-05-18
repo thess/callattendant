@@ -399,6 +399,11 @@ def init_data_path(config):
         print("The VOICE_MAIL_MESSAGE_FOLDER symlink is not present. Creating {} symlink".format(symlink_path))
         os.symlink(config["VOICE_MAIL_MESSAGE_FOLDER"], symlink_path)
 
+    # Create folder for recorded notifications (populate default from kit "resources")
+    wavpath = config["NOTIFICATIONS_FOLDER"]
+    if not os.path.isdir(wavpath):
+        print("The is NOTIFICATIONS_FOLDER not present. Creating {}".format(wavpath))
+        os.mkdir(wavpath)
 
 def get_args(argv):
     """Get and validate the command line arguments.

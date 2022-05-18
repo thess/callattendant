@@ -14,18 +14,19 @@ import types
 from tempfile import gettempdir
 from werkzeug.utils import import_string
 
-# This default configuration (used when when a configuration file is not provided)
+# This default configuration (used when a configuration file is not provided)
 # will record messages from blocked (denied) callers, and will simply pass permitted
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '1.1.1',
+    "VERSION": '1.2.0',
 
     "ENV": 'production',
     "DEBUG": False,
     "TESTING": False,
 
     "DATABASE": "callattendant.db",
+    "NOTIFICATIONS_FOLDER": "notifications",
     "SCREENING_MODE": ("whitelist", "blacklist"),
 
     "PHONE_DISPLAY_SEPARATOR": "-",
@@ -33,6 +34,7 @@ default_config = {
 
     "BLOCK_ENABLED": True,
     "BLOCK_SERVICE": "",
+    "BLOCK_SERVICE_THRESHOLD": 0,
 
     "BLOCK_NAME_PATTERNS": 'blocknameslist.txt',
     "BLOCK_NUMBER_PATTERNS": 'blocknumberslist.txt',
@@ -43,22 +45,23 @@ default_config = {
     "PERMIT_NEXT_CALL_FLAG": 'permitnextcall.flag',
 
     "BLOCKED_ACTIONS": ("answer", "greeting", "voice_mail"),
-    "BLOCKED_GREETING_FILE": "resources/blocked_greeting.wav",
+    "BLOCKED_GREETING_FILE": "blocked_greeting.wav",
     "BLOCKED_RINGS_BEFORE_ANSWER": 0,
 
     "SCREENED_ACTIONS": ("answer", "greeting", "record_message"),
-    "SCREENED_GREETING_FILE": "resources/general_greeting.wav",
+    "SCREENED_GREETING_FILE": "general_greeting.wav",
     "SCREENED_RINGS_BEFORE_ANSWER": 0,
 
     "PERMITTED_ACTIONS": ("ignore",),
-    "PERMITTED_GREETING_FILE": "resources/general_greeting.wav",
+    "PERMITTED_GREETING_FILE": "general_greeting.wav",
     "PERMITTED_RINGS_BEFORE_ANSWER": 0,
 
-    "VOICE_MAIL_GREETING_FILE": "resources/general_greeting.wav",
-    "VOICE_MAIL_GOODBYE_FILE": "resources/goodbye.wav",
-    "VOICE_MAIL_INVALID_RESPONSE_FILE": "resources/invalid_response.wav",
-    "VOICE_MAIL_LEAVE_MESSAGE_FILE": "resources/please_leave_message.wav",
-    "VOICE_MAIL_MENU_FILE": "resources/voice_mail_menu.wav",
+    "VOICE_MAIL_GREETING_FILE": "general_greeting.wav",
+    "VOICE_MAIL_GOODBYE_FILE": "goodbye.wav",
+    "VOICE_MAIL_INVALID_RESPONSE_FILE": "invalid_response.wav",
+    "VOICE_MAIL_LEAVE_MESSAGE_FILE": "please_leave_message.wav",
+    "VOICE_MAIL_CALLBACK_FILE": "thankyou_callback.wav",
+    "VOICE_MAIL_MENU_FILE": "voice_mail_menu.wav",
     "VOICE_MAIL_MESSAGE_FOLDER": "messages",
 
     "EMAIL_SERVER": "SMTP server",
@@ -94,7 +97,7 @@ class ConfigAttribute:
         self.__name__ = name
         self.get_converter = get_converter
 
-    def __get__(self, obj, type=None):
+    def __get__(self, obj, objtype=None):
         if obj is None:
             return self
         rv = obj.config[self.__name__]
@@ -117,7 +120,7 @@ class Config(dict):
     the application.
     """
 
-    def __init__(self, root_path=None, data_path=None, defaults=default_config):
+    def __init__(self, root_path=None, data_path=None, defaults=None):
         """
         Constructor.
             :param root_path:
@@ -130,7 +133,7 @@ class Config(dict):
             :param defaults:
                 The default configuration values
         """
-        dict.__init__(self, defaults or {})
+        dict.__init__(self, defaults or default_config)
         if root_path:
             self.root_path = root_path
         else:
@@ -149,22 +152,24 @@ class Config(dict):
         Normalizes the file based setting will absolute paths built from the
         root_path and data_path values passed in the contstructor.
         """
-        rootpath = self.root_path
+        # rootpath = self.root_path
         datapath = self.data_path
         if not datapath:
             return
 
         self["DB_FILE"] = os.path.normpath(os.path.join(datapath, self["DATABASE"]))
 
-        self["BLOCKED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["BLOCKED_GREETING_FILE"]))
-        self["SCREENED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["SCREENED_GREETING_FILE"]))
-        self["PERMITTED_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["PERMITTED_GREETING_FILE"]))
+        wavpath = os.path.join(datapath, self["NOTIFICATIONS_FOLDER"])
+        self["BLOCKED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["BLOCKED_GREETING_FILE"]))
+        self["SCREENED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["SCREENED_GREETING_FILE"]))
+        self["PERMITTED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["PERMITTED_GREETING_FILE"]))
 
-        self["VOICE_MAIL_GREETING_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_GREETING_FILE"]))
-        self["VOICE_MAIL_GOODBYE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_GOODBYE_FILE"]))
-        self["VOICE_MAIL_LEAVE_MESSAGE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_LEAVE_MESSAGE_FILE"]))
-        self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"]))
-        self["VOICE_MAIL_MENU_FILE"] = os.path.normpath(os.path.join(rootpath, self["VOICE_MAIL_MENU_FILE"]))
+        self["VOICE_MAIL_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_GREETING_FILE"]))
+        self["VOICE_MAIL_GOODBYE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_GOODBYE_FILE"]))
+        self["VOICE_MAIL_LEAVE_MESSAGE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_LEAVE_MESSAGE_FILE"]))
+        self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"]))
+        self["VOICE_MAIL_MENU_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_MENU_FILE"]))
+        self["VOICE_MAIL_CALLBACK_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_CALLBACK_FILE"]))
 
         self["BLOCK_NAME_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NAME_PATTERNS"]))
         self["BLOCK_NUMBER_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NUMBER_PATTERNS"]))
@@ -252,6 +257,10 @@ class Config(dict):
         filepath = self["VOICE_MAIL_MENU_FILE"]
         if not os.path.exists(filepath):
             print("* VOICE_MAIL_MENU_FILE not found: {}".format(filepath))
+            success = False
+        filepath = self["VOICE_MAIL_CALLBACK_FILE"]
+        if not os.path.exists(filepath):
+            print("* VOICE_MAIL_CALLBACK_FILE not found: {}".format(filepath))
             success = False
         filepath = self["VOICE_MAIL_MESSAGE_FOLDER"]
         if not os.path.exists(filepath):

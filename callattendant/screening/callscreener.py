@@ -120,7 +120,8 @@ class CallScreener(object):
 
         self._blacklist = Blacklist(db, config)
         self._whitelist = Whitelist(db, config)
-        self._nomorobo = NomoroboService()
+        # Set blocking threshold to 1 to filter nuisance calls
+        self._nomorobo = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
 
         if self.config["DEBUG"]:
             print("CallScreener initialized")
