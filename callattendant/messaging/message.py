@@ -130,10 +130,12 @@ class Message:
             print("Deleting message: {}".format(filepath))
             try:
                 os.remove(filepath)
-            except Exception as error:
+            except OSError as error:
                 pprint(error)
                 print("{} cannot be removed".format(filepath))
-                success = False
+                # ignore file not found errors
+                if error.errno != 2:
+                    success = False
 
             # Delete the row
             if success:
@@ -142,9 +144,9 @@ class Message:
                 self.db.execute(sql, arguments)
                 self.db.commit()
 
-                if self.config["DEBUG"]:
-                    print("Message entry removed")
-                    pprint(arguments)
+            if self.config["DEBUG"]:
+                print("Message entry removed")
+                pprint(arguments)
 
             self._update_unplayed_count()
 

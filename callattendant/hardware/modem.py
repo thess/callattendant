@@ -406,6 +406,8 @@ class Modem(object):
                 sleep_interval = .100 if self.model == "USR" else .030
                 chunk = 1024
                 data = wavefile.readframes(chunk)
+                # wait before we speak
+                time.sleep(0.5)
                 while data != b'':
                     self._serial.write(data)
                     data = wavefile.readframes(chunk)

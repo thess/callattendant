@@ -187,7 +187,7 @@ class VoiceMail:
                 if self.config["EMAIL_WAVE_ATTACHMENT"]:
                     with open(filepath, 'rb') as wavefile:
                         att = MIMEAudio(wavefile.read(), 'wave')
-                        att.add_header('Content-Disposition', f'attachment;filename={os.path.basename(filepath)}')
+                        att.add_header('Content-Disposition', f'attachment;filename="{os.path.basename(filepath)}"')
                         message.attach(att)
                 server.sendmail(self.config["EMAIL_FROM"], self.config["EMAIL_TO"], message.as_string())
                 print("Email notification sent to {}".format(self.config["EMAIL_TO"]))
