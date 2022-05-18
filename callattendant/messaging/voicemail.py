@@ -124,11 +124,11 @@ class VoiceMail:
             if not success:
                 break
             if digit == '1':
-                self.record_message(call_no, caller)
+                self.record_message(call_no, caller, self.config["VOICE_MAIL_LEAVE_MESSAGE_FILE"])
                 rec_msg = True  # prevent a duplicate reset_message_indicator
                 break
             elif digit == '0':
-                self.modem.play_audio(voice_mail['callback_file'])
+                self.modem.play_audio(voice_mail_callback_file)
                 self.whitelist.add_caller(caller, "Caller pressed 0")
                 break
             else:
@@ -139,7 +139,7 @@ class VoiceMail:
         if not rec_msg:
             self.reset_message_indicator()
 
-    def record_message(self, call_no, caller, detect_silence=True):
+    def record_message(self, call_no, caller, msg_file=None, detect_silence=True):
         """
         Records a message.
         """
@@ -152,8 +152,8 @@ class VoiceMail:
             datetime.now().strftime("%m%d%y_%H%M")))
 
         # Play instructions to caller
-        leave_msg_file = self.config["VOICE_MAIL_LEAVE_MESSAGE_FILE"]
-        self.modem.play_audio(leave_msg_file)
+        if msg_file:
+            self.modem.play_audio(msg_file)
 
         # Show recording in progress
         self.message_indicator.turn_on()
@@ -175,20 +175,24 @@ class VoiceMail:
 
     def __send_email(self, caller, filepath):
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(self.config["EMAIL_SERVER"], self.config["EMAIL_PORT"], context=context) as server:
-            server.login(self.config["EMAIL_SERVER_USERNAME"], self.config["EMAIL_SERVER_PASSWORD"])
-            message = MIMEMultipart()
-            message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
-            message['From'] = self.config["EMAIL_FROM"]
-            message['To'] = self.config["EMAIL_TO"]
-            body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n')
-            message.attach(body)
-            if self.config["EMAIL_WAVE_ATTACHMENT"]:
-                with open(filepath, 'rb') as wavefile:
-                    att = MIMEAudio(wavefile.read(), 'wave')
-                    att.add_header('Content-Disposition', f'attachment;filename={os.path.basename(filepath)}')
-                    message.attach(att)
-            server.sendmail(self.config["EMAIL_FROM"], self.config["EMAIL_TO"], message.as_string())
+        try:
+            with smtplib.SMTP_SSL(self.config["EMAIL_SERVER"], self.config["EMAIL_PORT"], context=context) as server:
+                server.login(self.config["EMAIL_SERVER_USERNAME"], self.config["EMAIL_SERVER_PASSWORD"])
+                message = MIMEMultipart()
+                message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
+                message['From'] = self.config["EMAIL_FROM"]
+                message['To'] = self.config["EMAIL_TO"]
+                body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n')
+                message.attach(body)
+                if self.config["EMAIL_WAVE_ATTACHMENT"]:
+                    with open(filepath, 'rb') as wavefile:
+                        att = MIMEAudio(wavefile.read(), 'wave')
+                        att.add_header('Content-Disposition', f'attachment;filename={os.path.basename(filepath)}')
+                        message.attach(att)
+                server.sendmail(self.config["EMAIL_FROM"], self.config["EMAIL_TO"], message.as_string())
+                print("Email notification sent to {}".format(self.config["EMAIL_TO"]))
+        except Exception as e:
+            print("Error sending email: {}".format(e))
 
     def delete_message(self, msg_no):
         """

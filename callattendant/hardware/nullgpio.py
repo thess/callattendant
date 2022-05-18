@@ -101,7 +101,7 @@ class MessageCountIndicator(object):
 
     def display(self, char):
         self.val = char
-        print("Display: {}".format(char.encode()))
+        print("Display: {}".format(char))
 
     @property
     def decimal_point(self):
