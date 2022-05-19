@@ -36,11 +36,11 @@ default_config = {
     "BLOCK_SERVICE": "",
     "BLOCK_SERVICE_THRESHOLD": 0,
 
-    "BLOCK_NAME_PATTERNS": 'blocknameslist.txt',
-    "BLOCK_NUMBER_PATTERNS": 'blocknumberslist.txt',
+    "BLOCK_NAME_PATTERNS_FILE": 'blocknameslist.txt',
+    "BLOCK_NUMBER_PATTERNS_FILE": 'blocknumberslist.txt',
 
-    "PERMIT_NAME_PATTERNS": 'permitnameslist.txt',
-    "PERMIT_NUMBER_PATTERNS": 'permitnumberslist.txt',
+    "PERMIT_NAME_PATTERNS_FILE": 'permitnameslist.txt',
+    "PERMIT_NUMBER_PATTERNS_FILE": 'permitnumberslist.txt',
 
     "PERMIT_NEXT_CALL_FLAG": 'permitnextcall.flag',
 
@@ -56,12 +56,10 @@ default_config = {
     "PERMITTED_GREETING_FILE": "general_greeting.wav",
     "PERMITTED_RINGS_BEFORE_ANSWER": 0,
 
-    "VOICE_MAIL_GREETING_FILE": "general_greeting.wav",
     "VOICE_MAIL_GOODBYE_FILE": "goodbye.wav",
     "VOICE_MAIL_INVALID_RESPONSE_FILE": "invalid_response.wav",
     "VOICE_MAIL_LEAVE_MESSAGE_FILE": "please_leave_message.wav",
     "VOICE_MAIL_CALLBACK_FILE": "thankyou_callback.wav",
-    "VOICE_MAIL_MENU_FILE": "voice_mail_menu.wav",
     "VOICE_MAIL_MESSAGE_FOLDER": "messages",
 
     "EMAIL_SERVER": "SMTP server",
@@ -164,18 +162,16 @@ class Config(dict):
         self["SCREENED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["SCREENED_GREETING_FILE"]))
         self["PERMITTED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["PERMITTED_GREETING_FILE"]))
 
-        self["VOICE_MAIL_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_GREETING_FILE"]))
         self["VOICE_MAIL_GOODBYE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_GOODBYE_FILE"]))
         self["VOICE_MAIL_LEAVE_MESSAGE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_LEAVE_MESSAGE_FILE"]))
         self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"]))
-        self["VOICE_MAIL_MENU_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_MENU_FILE"]))
         self["VOICE_MAIL_CALLBACK_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_CALLBACK_FILE"]))
 
-        self["BLOCK_NAME_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NAME_PATTERNS"]))
-        self["BLOCK_NUMBER_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NUMBER_PATTERNS"]))
+        self["BLOCK_NAME_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NAME_PATTERNS_FILE"]))
+        self["BLOCK_NUMBER_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NUMBER_PATTERNS_FILE"]))
 
-        self["PERMIT_NAME_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NAME_PATTERNS"]))
-        self["PERMIT_NUMBER_PATTERNS"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NUMBER_PATTERNS"]))
+        self["PERMIT_NAME_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NAME_PATTERNS_FILE"]))
+        self["PERMIT_NUMBER_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NUMBER_PATTERNS_FILE"]))
 
         self["PERMIT_NEXT_CALL_FLAG"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NEXT_CALL_FLAG"]))
 
@@ -238,10 +234,6 @@ class Config(dict):
             print("* PERMITTED_GREETING_FILE not found: {}".format(filepath))
             success = False
 
-        filepath = self["VOICE_MAIL_GREETING_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_GREETING_FILE not found: {}".format(filepath))
-            success = False
         filepath = self["VOICE_MAIL_GOODBYE_FILE"]
         if not os.path.exists(filepath):
             print("* VOICE_MAIL_GOODBYE_FILE not found: {}".format(filepath))
@@ -253,10 +245,6 @@ class Config(dict):
         filepath = self["VOICE_MAIL_INVALID_RESPONSE_FILE"]
         if not os.path.exists(filepath):
             print("* VOICE_MAIL_INVALID_RESPONSE_FILE not found: {}".format(filepath))
-            success = False
-        filepath = self["VOICE_MAIL_MENU_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_MENU_FILE not found: {}".format(filepath))
             success = False
         filepath = self["VOICE_MAIL_CALLBACK_FILE"]
         if not os.path.exists(filepath):

@@ -47,7 +47,7 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking permitted patterns...")
-                list = listfiles.read_list_file_list(permit["name_patterns"])
+                list = permit["name_patterns"]
                 for key in list.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
@@ -55,7 +55,7 @@ class CallScreener(object):
                         print(reason)
                         return True, reason
 
-                list = listfiles.read_list_file_list(permit["number_patterns"])
+                list = permit["number_patterns"]
                 for key in list.keys():
                     match = re.search(key, number)
                     if match:
@@ -77,7 +77,7 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking blocked patterns...")
-                list = listfiles.read_list_file_list(block["name_patterns"])
+                list = block["name_patterns"]
                 for key in list.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
@@ -85,7 +85,7 @@ class CallScreener(object):
                         print(reason)
                         return True, reason
 
-                list = listfiles.read_list_file_list(block["number_patterns"])
+                list = block["number_patterns"]
                 for key in list.keys():
                     match = re.search(key, number)
                     if match:
@@ -122,6 +122,12 @@ class CallScreener(object):
         self._whitelist = Whitelist(db, config)
         # Set blocking threshold to 1 to filter nuisance calls
         self._nomorobo = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
+
+        # Load number and name patterns into config vars
+        self.config["BLOCK_NAME_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NAME_PATTERNS_FILE"])
+        self.config["BLOCK_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NUMBER_PATTERNS_FILE"])
+        self.config["PERMIT_NAME_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NAME_PATTERNS_FILE"])
+        self.config["PERMIT_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NUMBER_PATTERNS_FILE"])
 
         if self.config["DEBUG"]:
             print("CallScreener initialized")

@@ -879,10 +879,10 @@ def callers_regexlists():
     return render_template(
         'callers_regexlists.html',
         active_nav_item='regexlists',
-        blocknameslist=listfiles.read_list_file_text(config.get('BLOCK_NAME_PATTERNS')),
-        blocknumberslist=listfiles.read_list_file_text(config.get('BLOCK_NUMBER_PATTERNS')),
-        permitnameslist=listfiles.read_list_file_text(config.get('PERMIT_NAME_PATTERNS')),
-        permitnumberslist=listfiles.read_list_file_text(config.get('PERMIT_NUMBER_PATTERNS')),
+        blocknameslist=listfiles.read_list_file_text(config.get('BLOCK_NAME_PATTERNS_FILE')),
+        blocknumberslist=listfiles.read_list_file_text(config.get('BLOCK_NUMBER_PATTERNS_FILE')),
+        permitnameslist=listfiles.read_list_file_text(config.get('PERMIT_NAME_PATTERNS_FILE')),
+        permitnumberslist=listfiles.read_list_file_text(config.get('PERMIT_NUMBER_PATTERNS_FILE')),
     )
 
 import json
@@ -891,10 +891,20 @@ import json
 def callers_regexlists_save():
     config = current_app.config.get("MASTER_CONFIG")
 
-    listfiles.write_list_file_text(config.get('BLOCK_NAME_PATTERNS'), request.form['blocknameslist'])
-    listfiles.write_list_file_text(config.get('BLOCK_NUMBER_PATTERNS'), request.form['blocknumberslist'])
-    listfiles.write_list_file_text(config.get('PERMIT_NAME_PATTERNS'), request.form['permitnameslist'])
-    listfiles.write_list_file_text(config.get('PERMIT_NUMBER_PATTERNS'), request.form['permitnumberslist'])
+    # Get the data from the request and remove CRs
+    # Reload im-memory values (config object)
+    listfiles.write_list_file_text(config.get('BLOCK_NAME_PATTERNS_FILE'),
+                                   request.form['blocknameslist'].replace('\r', ''))
+    config["BLOCK_NAME_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NAME_PATTERNS_FILE"])
+    listfiles.write_list_file_text(config.get('BLOCK_NUMBER_PATTERNS_FILE'),
+                                   request.form['blocknumberslist'].replace('\r', ''))
+    config["BLOCK_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NUMBER_PATTERNS_FILE"])
+    listfiles.write_list_file_text(config.get('PERMIT_NAME_PATTERNS_FILE'),
+                                   request.form['permitnameslist'].replace('\r', ''))
+    config["PERMIT_NAME_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NAME_PATTERNS_FILE"])
+    listfiles.write_list_file_text(config.get('PERMIT_NUMBER_PATTERNS_FILE'),
+                                   request.form['permitnumberslist'].replace('\r', ''))
+    config["PERMIT_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NUMBER_PATTERNS_FILE"])
 
     return 'updated';
 

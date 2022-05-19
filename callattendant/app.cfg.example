@@ -69,28 +69,28 @@ BLOCK_ENABLED = True
 # NOTIFICATIONS_FOLDER: Locations of recorded wave files used for voice notifications
 NOTIFICATIONS_FOLDER = "notifications"
 
-# BLOCK_NAME_PATTERNS: Block calls based on a file containing RegEx expressions
+# BLOCK_NAME_PATTERNS_FILE: Block calls based on a file containing RegEx expressions
 # to the CID names: regex: description
 #   Example: V[0-9]{15} Telemarketer Caller ID
 #            O: Unknown caller
-BLOCK_NAME_PATTERNS = 'blocknameslist.txt'
+BLOCK_NAME_PATTERNS_FILE = 'blocknameslist.txt'
 
-# BLOCK_NUMBER_PATTERNS: Block calls based on a file containing RegEx expressions
+# BLOCK_NUMBER_PATTERNS_FILE: Block calls based on a file containing RegEx expressions
 # applied to the CID numbers: regex: description
 #   Example: P: Private number
 #            O: Out of area
-BLOCK_NUMBER_PATTERNS = 'blocknumberslist.txt'
+BLOCK_NUMBER_PATTERNS_FILE = 'blocknumberslist.txt'
 
-# PERMIT_NAME_PATTERNS: Permit calls based on a file containing RegEx expressions
+# PERMIT_NAME_PATTERNS_FILE: Permit calls based on a file containing RegEx expressions
 # applied to the CID names: regex: description
 #   Example: .*DOE: Family
 #            .*SCHOOL: Schools
-PERMIT_NAME_PATTERNS = 'permitnameslist.txt'
+PERMIT_NAME_PATTERNS_FILE = 'permitnameslist.txt'
 
-# PERMIT_NUMBER_PATTERNS: Permit calls based on a file containing RegEx expressions
+# PERMIT_NUMBER_PATTERNS_FILE: Permit calls based on a file containing RegEx expressions
 # applied to the CID numbers: regex: description
 #   Example: 01628: My area
-PERMIT_NUMBER_PATTERNS = 'permitnumberslist.txt'
+PERMIT_NUMBER_PATTERNS_FILE = 'permitnumberslist.txt'
 
 # PERMIT_NEXT_CALL_FLAG: Temporary file, created and destroyed by the app,
 # to indicate whether the next incoming call should be permitted.
@@ -185,7 +185,8 @@ PERMITTED_RINGS_BEFORE_ANSWER = 0
 
 # VOICE_MAIL_GREETING_FILE: The wav file played after answering: a general greeting
 #   Example: "I'm sorry we missed your call..."
-VOICE_MAIL_GREETING_FILE = "general_greeting.wav"
+# Deprecated: Not used anymore.
+#VOICE_MAIL_GREETING_FILE = "general_greeting.wav"
 
 # VOICE_MAIL_GOODBYE_FILE: The wav file play just before hanging up
 #   Example: "Goodbye"
@@ -205,7 +206,8 @@ VOICE_MAIL_CALLBACK_FILE = "thankyou_callback.wav"
 
 # VOICE_MAIL_MENU_FILE: The wav file with message instructions, played after the greeting
 #   Example: "Press 1 to leave a message..."
-VOICE_MAIL_MENU_FILE = "voice_mail_menu.wav"
+# Deprecated - not used (see SCREENED actions, etc.)
+#VOICE_MAIL_MENU_FILE = "voice_mail_menu.wav"
 
 # VOICE_MAIL_MESSAGE_FOLDER: The folder where voice mail message are stored
 #   This should not be changed/overridden except during development/testing
