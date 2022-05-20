@@ -400,14 +400,14 @@ class Modem(object):
                 print("* Error: Unable put modem into voice data transmit state.")
                 return False
 
+            # wait before we speak
+            time.sleep(1.0)
             # Play Audio File
             with wave.open(audio_file_name, 'rb') as wavefile:
                 # Adjust sleep interval between frames as necessary to smooth audio
                 sleep_interval = .100 if self.model == "USR" else .030
                 chunk = 1024
                 data = wavefile.readframes(chunk)
-                # wait before we speak
-                time.sleep(0.5)
                 while data != b'':
                     self._serial.write(data)
                     data = wavefile.readframes(chunk)
