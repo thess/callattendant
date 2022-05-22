@@ -30,7 +30,7 @@ import sys
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from screening.nomorobo import NomoroboService
-import listfiles
+import yaml
 
 
 class CallScreener(object):
@@ -40,14 +40,13 @@ class CallScreener(object):
         '''Returns true if the number is on a whitelist'''
         number = callerid['NMBR']
         name = callerid["NAME"]
-        permit = self.config.get_namespace("PERMIT_")
         try:
             is_whitelisted, reason = self._whitelist.check_number(callerid['NMBR'])
             if is_whitelisted:
                 return True, reason
             else:
                 print(">> Checking permitted patterns...")
-                list = permit["name_patterns"]
+                list = self.confg.get("CALLERID_PATTERNS")["permitnames"]
                 for key in list.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
@@ -55,7 +54,7 @@ class CallScreener(object):
                         print(reason)
                         return True, reason
 
-                list = permit["number_patterns"]
+                list = self.config["CALLERID_PATTERNS"]["permitnumbers"]
                 for key in list.keys():
                     match = re.search(key, number)
                     if match:
@@ -70,14 +69,13 @@ class CallScreener(object):
         '''Returns true if the number is on a blacklist'''
         number = callerid['NMBR']
         name = callerid["NAME"]
-        block = self.config.get_namespace("BLOCK_")
         try:
             is_blacklisted, reason = self._blacklist.check_number(number)
             if is_blacklisted:
                 return True, reason
             else:
                 print(">> Checking blocked patterns...")
-                list = block["name_patterns"]
+                list = self.config["CALLERID_PATTERNS"]["blocknames"]
                 for key in list.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
@@ -85,14 +83,14 @@ class CallScreener(object):
                         print(reason)
                         return True, reason
 
-                list = block["number_patterns"]
+                list = self.config["CALLERID_PATTERNS"]["blocknumbers"]
                 for key in list.keys():
                     match = re.search(key, number)
                     if match:
                         reason = list[key]
                         print(reason)
                         return True, reason
-                if block["service"].upper() == "NOMOROBO":
+                if self.config.get("BLOCK_SERVICE").upper() == "NOMOROBO":
                     print(">> Checking nomorobo...")
                     result = self._nomorobo.lookup_number(number)
                     if result["spam"]:
@@ -124,10 +122,20 @@ class CallScreener(object):
         self._nomorobo = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
 
         # Load number and name patterns into config vars
-        self.config["BLOCK_NAME_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NAME_PATTERNS_FILE"])
-        self.config["BLOCK_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NUMBER_PATTERNS_FILE"])
-        self.config["PERMIT_NAME_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NAME_PATTERNS_FILE"])
-        self.config["PERMIT_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NUMBER_PATTERNS_FILE"])
+        try:
+            with open(self.config["CALLERID_PATTERNS_FILE"], "r") as file:
+                self.config["CALLERID_PATTERNS"] = yaml.safe_load(file)
+        except FileNotFoundError:
+            print("Callerid patterns file not found")
+            # Load dummy patterns
+            self.config["CALLERID_PATTERNS"] = {'blocknames': {}, 'blocknumbers': {},
+                                                'permitnames': {}, 'permitnumbers': {}}
+        except yaml.YAMLError as e:
+            print("Error loading callerid patterns file")
+            if hasattr(e, 'problem_mark'):
+                mark = e.problem_mark
+                print("Error parsing Yaml file at line {}, column {}.".format(mark.line + 1, mark.column + 1))
+            sys.exit(1)
 
         if self.config["DEBUG"]:
             print("CallScreener initialized")

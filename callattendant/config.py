@@ -36,11 +36,7 @@ default_config = {
     "BLOCK_SERVICE": "",
     "BLOCK_SERVICE_THRESHOLD": 0,
 
-    "BLOCK_NAME_PATTERNS_FILE": 'blocknameslist.txt',
-    "BLOCK_NUMBER_PATTERNS_FILE": 'blocknumberslist.txt',
-
-    "PERMIT_NAME_PATTERNS_FILE": 'permitnameslist.txt',
-    "PERMIT_NUMBER_PATTERNS_FILE": 'permitnumberslist.txt',
+    "CALLERID_PATTERNS_FILE": 'cid_patterns.yaml',
 
     "PERMIT_NEXT_CALL_FLAG": 'permitnextcall.flag',
 
@@ -167,11 +163,7 @@ class Config(dict):
         self["VOICE_MAIL_INVALID_RESPONSE_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_INVALID_RESPONSE_FILE"]))
         self["VOICE_MAIL_CALLBACK_FILE"] = os.path.normpath(os.path.join(wavpath, self["VOICE_MAIL_CALLBACK_FILE"]))
 
-        self["BLOCK_NAME_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NAME_PATTERNS_FILE"]))
-        self["BLOCK_NUMBER_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["BLOCK_NUMBER_PATTERNS_FILE"]))
-
-        self["PERMIT_NAME_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NAME_PATTERNS_FILE"]))
-        self["PERMIT_NUMBER_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NUMBER_PATTERNS_FILE"]))
+        self["CALLERID_PATTERNS_FILE"] = os.path.normpath(os.path.join(datapath, self["CALLERID_PATTERNS_FILE"]))
 
         self["PERMIT_NEXT_CALL_FLAG"] = os.path.normpath(os.path.join(datapath, self["PERMIT_NEXT_CALL_FLAG"]))
 

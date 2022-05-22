@@ -137,7 +137,7 @@ class CallAttendant(object):
         # Process incoming calls
         exit_code = 0
         caller = {}
-        print("Waiting for call...")
+        print("Waiting for call...", flush=True)
         while not self._stop_event.is_set():
             try:
                 # Wait (blocking) for a caller
@@ -213,7 +213,7 @@ class CallAttendant(object):
                 else:
                     self.ignore_call(caller)
 
-                print("Waiting for next call...")
+                print("Waiting for next call...", flush=True)
 
             except KeyboardInterrupt:
                 print("** User initiated shutdown")
@@ -260,17 +260,17 @@ class CallAttendant(object):
             try:
                 # Play greeting
                 if "greeting" in actions:
-                    print(">> Playing greeting...")
+                    print(">> Playing greeting...", flush=True)
                     self.modem.play_audio(greeting)
 
                 # Record message
                 if "record_message" in actions:
-                    print(">> Recording message...")
+                    print(">> Recording message...", flush=True)
                     self.voice_mail.record_message(call_no, caller)
 
                 # Enter voice mail menu
                 elif "voice_mail" in actions:
-                    print(">> Starting voice mail...")
+                    print(">> Starting voice mail...", flush=True)
                     self.voice_mail.voice_messaging_menu(call_no, caller)
 
             except RuntimeError as e:

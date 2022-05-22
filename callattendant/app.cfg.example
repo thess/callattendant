@@ -69,28 +69,18 @@ BLOCK_ENABLED = True
 # NOTIFICATIONS_FOLDER: Locations of recorded wave files used for voice notifications
 NOTIFICATIONS_FOLDER = "notifications"
 
-# BLOCK_NAME_PATTERNS_FILE: Block calls based on a file containing RegEx expressions
-# to the CID names: regex: description
-#   Example: V[0-9]{15} Telemarketer Caller ID
+# CALLERID_PATTERNS_FILE: A file containing RegEx expressions for blocked and permitted names and
+# phone numbers to be used for screening. The file is in YAML format and had 4 sections, one for
+# each category:
+#  - "blockednames" - a list of names to be blocked
+#  - "permittednames" - a list of names to be permitted
+#  - "blockednumbers" - a list of phone numbers to be blocked
+#  - "permittednumbers" - a list phone numbers to be permitted
+#
+# Each item is a RegEx expression and a description.
+#   Example: V[0-9]{15}: Telemarketer Caller ID
 #            O: Unknown caller
-BLOCK_NAME_PATTERNS_FILE = 'blocknameslist.txt'
-
-# BLOCK_NUMBER_PATTERNS_FILE: Block calls based on a file containing RegEx expressions
-# applied to the CID numbers: regex: description
-#   Example: P: Private number
-#            O: Out of area
-BLOCK_NUMBER_PATTERNS_FILE = 'blocknumberslist.txt'
-
-# PERMIT_NAME_PATTERNS_FILE: Permit calls based on a file containing RegEx expressions
-# applied to the CID names: regex: description
-#   Example: .*DOE: Family
-#            .*SCHOOL: Schools
-PERMIT_NAME_PATTERNS_FILE = 'permitnameslist.txt'
-
-# PERMIT_NUMBER_PATTERNS_FILE: Permit calls based on a file containing RegEx expressions
-# applied to the CID numbers: regex: description
-#   Example: 01628: My area
-PERMIT_NUMBER_PATTERNS_FILE = 'permitnumberslist.txt'
+CALLERID_PATTERNS_FILE = 'cid_patterns.yaml'
 
 # PERMIT_NEXT_CALL_FLAG: Temporary file, created and destroyed by the app,
 # to indicate whether the next incoming call should be permitted.

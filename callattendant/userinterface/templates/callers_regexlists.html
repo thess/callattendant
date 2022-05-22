@@ -73,10 +73,11 @@ $('#save-button').on('click', function (event) {
     $.post(
         "/callers/regexlists/save",
         data,
-        function(data, status) {
+        function(status) {
             alert("Save returned " + status);
-            if (status == success)
-                $('#save-button').disabled = true;
+            if (status == "success") {
+                document.getElementById('save-button').disabled = true;
+            }
         }
     );
 });

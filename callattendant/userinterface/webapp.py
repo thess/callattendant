@@ -50,7 +50,7 @@ from screening.query_db import query_db
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from messaging.voicemail import Message
-import listfiles
+import yaml
 import nextcall
 
 # Create the Flask micro web-framework application
@@ -871,42 +871,60 @@ def settings():
         curr_settings=curr_settings,
         file_settings=file_settings)
 
+# Utility functions to convert dicts to strings and vice versa
+# for use in html editor forms
+def dict2stringlist(d):
+    """
+    Convert a dict to a string of items one per line
+    """
+    list = ""
+    for k, v in d.items():
+        list = list + k + ': ' + v + '\n'
+    return list
+
+def stringlist2dict(s):
+    """
+    Convert a string of items one per line to a dict
+    """
+    d = {}
+    for line in s.splitlines():
+        if line:
+            k, v = line.split(': ', 1)
+            d[k] = v
+    return d
+
 @app.route('/callers/regexlists')
 def callers_regexlists():
     config = current_app.config.get("MASTER_CONFIG")
-
     # Render the page
     return render_template(
         'callers_regexlists.html',
         active_nav_item='regexlists',
-        blocknameslist=listfiles.read_list_file_text(config.get('BLOCK_NAME_PATTERNS_FILE')),
-        blocknumberslist=listfiles.read_list_file_text(config.get('BLOCK_NUMBER_PATTERNS_FILE')),
-        permitnameslist=listfiles.read_list_file_text(config.get('PERMIT_NAME_PATTERNS_FILE')),
-        permitnumberslist=listfiles.read_list_file_text(config.get('PERMIT_NUMBER_PATTERNS_FILE')),
+        blocknameslist=dict2stringlist(config.get('CALLERID_PATTERNS')['blocknames']),
+        blocknumberslist=dict2stringlist(config.get('CALLERID_PATTERNS')['blocknumbers']),
+        permitnameslist=dict2stringlist(config.get('CALLERID_PATTERNS')['permitnames']),
+        permitnumberslist=dict2stringlist(config.get('CALLERID_PATTERNS')['permitnumbers']),
     )
 
-import json
 
 @app.route('/callers/regexlists/save', methods=['POST'])
 def callers_regexlists_save():
     config = current_app.config.get("MASTER_CONFIG")
 
-    # Get the data from the request and remove CRs
+    # Get the data from the request and convert each list to a dict
     # Reload im-memory values (config object)
-    listfiles.write_list_file_text(config.get('BLOCK_NAME_PATTERNS_FILE'),
-                                   request.form['blocknameslist'].replace('\r', ''))
-    config["BLOCK_NAME_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NAME_PATTERNS_FILE"])
-    listfiles.write_list_file_text(config.get('BLOCK_NUMBER_PATTERNS_FILE'),
-                                   request.form['blocknumberslist'].replace('\r', ''))
-    config["BLOCK_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["BLOCK_NUMBER_PATTERNS_FILE"])
-    listfiles.write_list_file_text(config.get('PERMIT_NAME_PATTERNS_FILE'),
-                                   request.form['permitnameslist'].replace('\r', ''))
-    config["PERMIT_NAME_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NAME_PATTERNS_FILE"])
-    listfiles.write_list_file_text(config.get('PERMIT_NUMBER_PATTERNS_FILE'),
-                                   request.form['permitnumberslist'].replace('\r', ''))
-    config["PERMIT_NUMBER_PATTERNS"] = listfiles.read_list_file_list(config["PERMIT_NUMBER_PATTERNS_FILE"])
+    config.get("CALLERID_PATTERNS")['blocknames'] = stringlist2dict(request.form['blocknameslist'])
+    config.get("CALLERID_PATTERNS")['blocknumbers'] = stringlist2dict(request.form['blocknumberslist'])
+    config.get("CALLERID_PATTERNS")['permitnames'] = stringlist2dict(request.form['permitnameslist'])
+    config.get("CALLERID_PATTERNS")['permitnumbers'] = stringlist2dict(request.form['permitnumberslist'])
+    # Write the new patterns to a file
+    try:
+        with open(config.get("CALLERID_PATTERNS_FILE"), 'w') as file:
+            yaml.dump(config.get("CALLERID_PATTERNS"), file, default_flow_style=False)
+    except Exception as e:
+        return str(e)
 
-    return 'updated';
+    return 'success'
 
 
 def format_phone_no(number):

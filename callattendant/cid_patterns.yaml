@@ -1,0 +1,5 @@
+blocknames:
+  V[0-9]{15}: Telemarketer Callers
+blocknumbers: {}
+permitnames: {}
+permitnumbers: {}
