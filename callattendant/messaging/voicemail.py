@@ -52,7 +52,8 @@ class VoiceMail:
         self.config["MESSAGE_EVENT"] = self.message_event
 
         # Initialize the message indicators (LEDs)
-        if self.config["STATUS_INDICATORS"] == "GPIO":
+        status_indicators = self.config["STATUS_INDICATORS"]
+        if status_indicators == "GPIO":
             from hardware.indicators import MessageIndicator, MessageCountIndicator, \
                     GPIO_MESSAGE, GPIO_MESSAGE_COUNT_PINS, GPIO_MESSAGE_COUNT_KWARGS
 
@@ -62,10 +63,14 @@ class VoiceMail:
             pins = self.config.get("GPIO_LED_MESSAGE_COUNT_PINS", GPIO_MESSAGE_COUNT_PINS)
             kwargs = self.config.get("GPIO_LED_MESSAGE_COUNT_KWARGS", GPIO_MESSAGE_COUNT_KWARGS)
             self.message_count_indicator = MessageCountIndicator(*pins, **kwargs)
-        elif self.config["STATUS_INDICATORS"] == "NULL":
+        elif status_indicators == "NULL":
             from hardware.nullgpio import MessageIndicator, MessageCountIndicator
             self.message_indicator = MessageIndicator()
             self.message_count_indicator = MessageCountIndicator()
+        elif status_indicators == "MQTT":
+            from hardware.mqttindicators import MQTTMessageIndicator, MQTTMessageCountIndicator
+            self.message_indicator = MQTTMessageIndicator()
+            self.message_count_indicator = MQTTMessageCountIndicator()
 
         # Create the Message object used to interface with the DB
         self.messages = Message(db, config)
@@ -217,8 +222,8 @@ class VoiceMail:
                     self.message_count_indicator.decimal_point = True
             else:
                 # Display actual count if not restricted by single digit
-                self.message_count_indicator.display(unplayed_count)
+                self.message_count_indicator.display = unplayed_count
         else:
             self.message_indicator.turn_off()
-            self.message_count_indicator.display(' ')
+            self.message_count_indicator.display = 0
             self.message_count_indicator.decimal_point = False

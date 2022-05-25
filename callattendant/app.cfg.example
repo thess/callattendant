@@ -203,6 +203,11 @@ VOICE_MAIL_CALLBACK_FILE = "thankyou_callback.wav"
 #   This should not be changed/overridden except during development/testing
 #VOICE_MAIL_MESSAGE_FOLDER = "messages"
 
+# VOICE_MAIL_RECORD_TIME: The maximum length of a recorded message in seconds
+#  Example: 60 for 1 minute
+VOICE_MAIL_RECORD_TIME = 120
+
+
 # EMAIL settings are used to send an e-mail notification when a message is recorded
 # EMAIL_ENABLE is True to enable sending e-mails when message are recorded. If set
 # to True, the other EMAIL settings must have valid values.
@@ -220,6 +225,16 @@ EMAIL_WAVE_ATTACHMENT = False
 # Indicator modules can be one of: GPIO, NULL or MQTT. Multiple indicator type not supported.
 # Default is NULL (No special hardware)
 STATUS_INDICATORS = "NULL"
+
+# MQTT settings if STATUS_INDICATORS is set to MQTT
+# Host name is required
+MQTT_BROKER = "MQTT server"
+MQTT_TOPIC_PREFIX = "callattendant"
+# Port is optional, default is 1883
+#MQTT_PORT = 1883
+# Username is optional, default is None
+#MQTT_USERNAME = None
+#MQTT_PASSWORD = None
 
 # GPIO_LED_..._PIN: These values are the GPIO pin numbers attached to the LED indicators
 # GPIO_LED_..._BRIGHTNESS: These values are a percentage of brightness for the LED indicators when on.

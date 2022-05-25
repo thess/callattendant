@@ -66,9 +66,9 @@ class CallAttendant(object):
         self._caller_queue = queue.Queue()
 
         #  Hardware subsystem
-        if self.config.get("STATUS_INDICATORS") == "GPIO":
+        status_indicators = self.config["STATUS_INDICATORS"]
+        if status_indicators == "GPIO":
             from hardware.indicators import ApprovedIndicator, BlockedIndicator
-
             #  Initialize the visual indicators (LEDs)
             self.approved_indicator = ApprovedIndicator(
                     self.config.get("GPIO_LED_APPROVED_PIN"),
@@ -76,10 +76,25 @@ class CallAttendant(object):
             self.blocked_indicator = BlockedIndicator(
                     self.config.get("GPIO_LED_BLOCKED_PIN"),
                     self.config.get("GPIO_LED_BLOCKED_BRIGHTNESS", 100))
-        elif self.config.get("STATUS_INDICATORS") == "NULL":
-            from hardware.nullgpio import ApprovedIndicator, BlockedIndicator
-            self.approved_indicator = ApprovedIndicator()
-            self.blocked_indicator = BlockedIndicator()
+        elif status_indicators == "MQTT":
+            from hardware.mqttindicators import MQTTIndicator, MQTTIndicatorClient
+            #  Initialize the MQTT client
+            try:
+                MQTTIndicatorClient(self.config['MQTT_BROKER'],
+                                port=self.config['MQTT_PORT'],
+                                topic_prefix=self.config['MQTT_TOPIC_PREFIX'],
+                                username=self.config['MQTT_USERNAME'],
+                                password=self.config['MQTT_PASSWORD'])
+            except KeyError as e:
+                print("MQTT Indicator configuration missing: {}".format(e))
+                sys.exit(1)
+
+            self.approved_indicator = MQTTIndicator('Approved')
+            self.blocked_indicator = MQTTIndicator('Blocked')
+        elif status_indicators == "NULL":
+            from hardware.nullgpio import DummyLED
+            self.approved_indicator = DummyLED('Approved')
+            self.blocked_indicator = DummyLED('Blocked')
 
         #  Create (and open) the modem
         self.modem = Modem(self.config)

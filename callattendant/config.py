@@ -57,6 +57,7 @@ default_config = {
     "VOICE_MAIL_LEAVE_MESSAGE_FILE": "please_leave_message.wav",
     "VOICE_MAIL_CALLBACK_FILE": "thankyou_callback.wav",
     "VOICE_MAIL_MESSAGE_FOLDER": "messages",
+    "VOICE_MAIL_RECORD_TIME": 120,
 
     "EMAIL_SERVER": "SMTP server",
     "EMAIL_PORT": 465,
@@ -78,6 +79,12 @@ default_config = {
     "GPIO_LED_MESSAGE_BRIGHTNESS": 100,
     "GPIO_LED_MESSAGE_COUNT_PINS": (8, 7, 27, 23, 10, 11, 9, 18),
     "GPIO_LED_MESSAGE_COUNT_KWARGS": {"active_high": True},
+
+    "MQTT_BROKER": "localhost",
+    "MQTT_PORT": 1883,
+    "MQTT_TOPIC_PREFIX": "callattendant",
+    "MQTT_USERNAME": "",
+    "MQTT_PASSWORD": "",
 
 }
 

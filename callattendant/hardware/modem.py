@@ -110,9 +110,6 @@ DTE_CLEAR_TRANSMIT_BUFFER = (chr(16) + chr(24))   # <DLE><CAN>
 # Return codes
 CRLF = (chr(13) + chr(10)).encode()
 
-# Record Voice Mail variables
-REC_VM_MAX_DURATION = 120  # Time in Seconds - TODO: make REC_VM_MAX_DURATION a config setting.
-
 TEST_DATA = [
     b"RING", b"DATE=0801", b"TIME=1801", b"NMBR=8055554567", b"NAME=Test1 - Permitted", b"RING", b"RING", b"RING", b"RING",
     b"RING", b"DATE=0802", b"TIME=1802", b"NMBR=5551234567", b"NAME=Test2 - Spammer",
@@ -146,14 +143,18 @@ class Modem(object):
         self._thread = None
 
         # Ring notifications
-        if self.config["STATUS_INDICATORS"] == "GPIO":
+        status_indicators = self.config["STATUS_INDICATORS"]
+        if status_indicators == "GPIO":
             from hardware.indicators import RingIndicator
             self.ring_indicator = RingIndicator(
                 self.config.get("GPIO_LED_RING_PIN"),
                 self.config.get("GPIO_LED_RING_BRIGHTNESS", 100))
-        elif self.config["STATUS_INDICATORS"] == "NULL":
+        elif status_indicators == "NULL":
            from hardware.nullgpio import RingIndicator
            self.ring_indicator = RingIndicator()
+        elif status_indicators == "MQTT":
+            from hardware.mqttindicators import MQTTRingIndicator
+            self.ring_indicator = MQTTRingIndicator()
 
         self.ring_event = threading.Event()
 
@@ -456,6 +457,7 @@ class Modem(object):
 
             # Record Audio File
             start_time = datetime.now()
+            record_timeout = self.config["VOICE_MAIL_RECORD_TIME"]
             CHUNK = 1024
             audio_frames = []
             # Define the range of amplitude values that are to be considered silence.
@@ -496,7 +498,7 @@ class Modem(object):
                         break
 
                 # Timeout
-                if ((datetime.now() - start_time).seconds) > REC_VM_MAX_DURATION:
+                if ((datetime.now() - start_time).seconds) > record_timeout:
                     print(">> Stop recording: max time limit reached.")
                     break
 
