@@ -19,7 +19,7 @@ from werkzeug.utils import import_string
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '1.2.0',
+    "VERSION": '1.2.1',
 
     "ENV": 'production',
     "DEBUG": False,
@@ -88,6 +88,8 @@ default_config = {
 
 }
 
+CID_PATTERNS_DEFAULT_STRING = b"blocknames: {}\nblocknumbers: {}\n" \
+                              b"permitnames: {}\npermitnumbers: {}\n"
 
 class ConfigAttribute:
     """
@@ -223,6 +225,17 @@ class Config(dict):
         if not isinstance(self["PERMITTED_RINGS_BEFORE_ANSWER"], int):
             print("* PERMITTED_RINGS_BEFORE_ANSWER should be an integer: {}".format(type(self["PERMITTED_RINGS_BEFORE_ANSWER"])))
             success = False
+
+        filepath = self["CALLERID_PATTERNS_FILE"]
+        if not os.path.exists(filepath):
+            print("* CALLERID_PATTERNS_FILE does not exist: {}".format(filepath))
+            print("**  Creating default empty file")
+            try:
+                with open(filepath, 'wb') as cidf:
+                    cidf.write(CID_PATTERNS_DEFAULT_STRING)
+            except Exception as e:
+                print("* Could not create default CALLERID_PATTERNS_FILE: {}".format(e))
+                success = False
 
         filepath = self["BLOCKED_GREETING_FILE"]
         if not os.path.exists(filepath):
