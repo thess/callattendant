@@ -23,6 +23,8 @@
 #  SOFTWARE.
 
 import paho.mqtt.client as mqtt
+import threading
+
 # Client singleton
 mqtt_client = None
 
@@ -33,6 +35,7 @@ class MQTTIndicatorClient(object):
     def __init__(self, host, port=1883, topic_prefix='callattendant', username=None, password=None):
         global mqtt_client
         if mqtt_client is None:
+            # No need to re-init
             mqtt_client = self
 
             self.server = host
@@ -65,29 +68,44 @@ class MQTTIndicator(object):
         self.mqtt_client = mqtt_client
         if init_state is not None:
             self.mqtt_client.publish(self.topic, init_state)
+        self.blink_timer = None
 
     def turn_on(self):
         print("{} LED turned on".format(self.topic))
+        if self.blink_timer is not None:
+            self.blink_timer.cancel()
+            self.blink_timer = None
         self.mqtt_client.publish(self.topic, "ON")
 
     def turn_off(self):
         print("{} LED turned off".format(self.topic))
+        if self.blink_timer is not None:
+            self.blink_timer.cancel()
+            self.blink_timer = None
         self.mqtt_client.publish(self.topic, "OFF")
 
     def blink(self, max_times=10):
         # Just say we're blinking
         if max_times is None:
             print("{} LED blinking".format(self.topic))
+            max_times = 0
         else:
             print("{} LED blinking: {} times".format(self.topic, max_times))
         self.mqtt_client.publish(self.topic, "BLINK {}".format(max_times))
+        if max_times > 0 and self.blink_timer is None:
+            self.blink_timer = threading.Timer(0.7 * max_times, self.turn_off)
+            self.blink_timer.start()
 
     def pulse(self, max_times=10):
         if max_times is None:
             print("{} LED pulsing".format(self.topic))
+            max_times = 0
         else:
             print("{} LED pulsing: {} times".format(self.topic, max_times))
         self.mqtt_client.publish(self.topic, "PULSE {}".format(max_times))
+        if max_times > 0 and self.blink_timer is None:
+            self.blink_timer = threading.Timer(2.0 * max_times, self.turn_off)
+            self.blink_timer.start()
 
     def close(self):
         self.mqtt_client.publish(self.topic, "CLOSED")
@@ -133,6 +151,7 @@ class MQTTMessageCountIndicator(MQTTIndicator):
     @display.setter
     def display(self, value):
         self.count = value
+        print("{} indicator set to {}".format(self.topic, self.count))
         self.mqtt_client.publish(self.topic, value)
 
     @property

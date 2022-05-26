@@ -210,6 +210,10 @@ class Config(dict):
         if not self._validate_actions("PERMITTED_ACTIONS"):
             success = False
 
+        if self["STATUS_INDICATORS"] not in ("NULL", "GPIO", "MQTT"):
+            print("* STATUS_INDICATORS is invalid: {}".format(self["STATUS_INDICATORS"]))
+            success = False
+
         if not isinstance(self["BLOCKED_RINGS_BEFORE_ANSWER"], int):
             print("* BLOCKED_RINGS_BEFORE_ANSWER should be an integer: {}".format(type(self["BLOCKED_RINGS_BEFORE_ANSWER"])))
             success = False

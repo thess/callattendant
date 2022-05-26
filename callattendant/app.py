@@ -152,6 +152,8 @@ class CallAttendant(object):
         # Process incoming calls
         exit_code = 0
         caller = {}
+        # Blink to confirm we have started
+        self.approved_indicator.blink(2)
         print("Waiting for call...", flush=True)
         while not self._stop_event.is_set():
             try:
