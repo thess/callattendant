@@ -108,6 +108,9 @@ class MQTTIndicator(object):
             self.blink_timer.start()
 
     def close(self):
+        if self.blink_timer is not None:
+            self.blink_timer.cancel()
+            self.blink_timer = None
         self.mqtt_client.publish(self.topic, "CLOSED")
 
 class MQTTRingIndicator(MQTTIndicator):

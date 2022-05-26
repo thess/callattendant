@@ -34,10 +34,10 @@ import yaml
 
 
 class CallScreener(object):
-    '''The CallScreener provides provides blacklist and whitelist checks'''
+    """The CallScreener provides blacklist and whitelist checks"""
 
     def is_whitelisted(self, callerid):
-        '''Returns true if the number is on a whitelist'''
+        """Returns true if the number is on a whitelist"""
         number = callerid['NMBR']
         name = callerid["NAME"]
         try:
@@ -46,19 +46,19 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking permitted patterns...")
-                list = self.confg.get("CALLERID_PATTERNS")["permitnames"]
-                for key in list.keys():
+                patternlist = self.config.get("CALLERID_PATTERNS")["permitnames"]
+                for key in patternlist.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
-                        reason = list[key]
+                        reason = patternlist[key]
                         print(reason)
                         return True, reason
 
-                list = self.config["CALLERID_PATTERNS"]["permitnumbers"]
-                for key in list.keys():
+                patternlist = self.config["CALLERID_PATTERNS"]["permitnumbers"]
+                for key in patternlist.keys():
                     match = re.search(key, number)
                     if match:
-                        reason = list[key]
+                        reason = patternlist[key]
                         print(reason)
                         return True, reason
                 return False, "Not found"
@@ -66,7 +66,7 @@ class CallScreener(object):
             sys.stdout.flush()
 
     def is_blacklisted(self, callerid):
-        '''Returns true if the number is on a blacklist'''
+        """Returns true if the number is on a blacklist"""
         number = callerid['NMBR']
         name = callerid["NAME"]
         try:
@@ -75,21 +75,22 @@ class CallScreener(object):
                 return True, reason
             else:
                 print(">> Checking blocked patterns...")
-                list = self.config["CALLERID_PATTERNS"]["blocknames"]
-                for key in list.keys():
+                patternlist = self.config["CALLERID_PATTERNS"]["blocknames"]
+                for key in patternlist.keys():
                     match = re.search(key, name, re.IGNORECASE)
                     if match:
-                        reason = list[key]
+                        reason = patternlist[key]
                         print(reason)
                         return True, reason
 
-                list = self.config["CALLERID_PATTERNS"]["blocknumbers"]
-                for key in list.keys():
+                patternlist = self.config["CALLERID_PATTERNS"]["blocknumbers"]
+                for key in patternlist.keys():
                     match = re.search(key, number)
                     if match:
-                        reason = list[key]
+                        reason = patternlist[key]
                         print(reason)
                         return True, reason
+
                 if self.config.get("BLOCK_SERVICE").upper() == "NOMOROBO":
                     print(">> Checking nomorobo...")
                     result = self._nomorobo.lookup_number(number)
