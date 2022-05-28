@@ -138,7 +138,7 @@ class Modem(object):
         self.model = None   # Model is set to USR, CONEXANT or UNKNOWN by _detect_modem
 
         # Thread synchronization objects
-        self._stop_event = threading.Event()
+        self._stop_flag = False
         self._lock = threading.RLock()
         self._thread = None
 
@@ -189,7 +189,9 @@ class Modem(object):
         """
         Stops the modem thread and releases hardware resources.
         """
-        self._stop_event.set()
+        self._stop_flag = True
+        # Wake up the thread if it is sleeping
+        self._serial.cancel_read()
         if self._thread:
             self._thread.join()
         self.ring_indicator.close()
@@ -226,7 +228,7 @@ class Modem(object):
             # This loop reads incoming data from the serial port and
             # posts the caller data to the handle_caller function
             call_record = {}
-            while not self._stop_event.is_set():
+            while not self._stop_flag:
                 modem_data = b''
 
                 # Read from the modem
@@ -585,7 +587,7 @@ class Modem(object):
                         raise RuntimeError("Timeout - wait time limit reached.")
 
                     # Parse DTMF Digits, if found in the modem data
-                    digit_list = re.findall('[0-9]+', decode(modem_data))  # '/(.+?)~'
+                    digit_list = re.findall('[\d#\*]+', decode(modem_data))  # '/(.+?)~'
                     if len(digit_list) > 0:
                         if debugging:
                             print("DTMF Digits:")
@@ -603,7 +605,6 @@ class Modem(object):
         """
         # Notify other threads that a ring occurred
         self.ring_event.set()
-        self.ring_event.clear()
         # Visual notification (LED)
         self.ring_indicator.ring()
 

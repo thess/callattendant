@@ -77,7 +77,7 @@ class VoiceMail:
         self.whitelist = Whitelist(db, config)
 
         # Start the thread that monitors the message events and updates the indicators
-        self._stop_event = threading.Event()
+        self._stop_flag = False
         self._thread = threading.Thread(target=self._event_handler)
         self._thread.name = "voice_mail_event_handler"
         self._thread.start()
@@ -92,8 +92,11 @@ class VoiceMail:
         """
         Stops the voice mail thread and releases hardware resources.
         """
-        self._stop_event.set()
+        # Signal thread to stop and wait for it to finish
+        self._stop_flag = True
+        self.message_event.set()
         self._thread.join()
+        # Release hardware resources
         self.message_indicator.close()
         self.message_count_indicator.close()
 
@@ -101,12 +104,13 @@ class VoiceMail:
         """
         Thread function that updates the message indicators upon a message event.
         """
-        while not self._stop_event.is_set():
+        while not self._stop_flag:
             # Get the number of unread messages
-            if self.message_event.wait(2.0):
+            if self.message_event.wait():
                 if self.config["DEBUG"]:
                     print("Message Event triggered")
                 self.reset_message_indicator()
+                self.message_event.clear()
 
     def voice_messaging_menu(self, call_no, caller):
         """
@@ -123,26 +127,25 @@ class VoiceMail:
 
         tries = 0
         wait_secs = 8   # Candidate for configuration
-        rec_msg = False
         while tries < 3:
             success, digit = self.modem.wait_for_keypress(wait_secs)
             if not success:
                 break
             if digit == '1':
                 self.record_message(call_no, caller, self.config["VOICE_MAIL_LEAVE_MESSAGE_FILE"])
-                rec_msg = True  # prevent a duplicate reset_message_indicator
                 break
             elif digit == '0':
                 self.modem.play_audio(voice_mail_callback_file)
+                self.modem.play_audio(goodbye_file)
                 self.whitelist.add_caller(caller, "Caller pressed 0")
+                break
+            elif digit == '#':
+                self.modem.play_audio(goodbye_file)
                 break
             else:
                 # Try again--up to a limit
                 self.modem.play_audio(invalid_response_file)
                 tries += 1
-        self.modem.play_audio(goodbye_file)
-        if not rec_msg:
-            self.reset_message_indicator()
 
     def record_message(self, call_no, caller, msg_file=None, detect_silence=True):
         """
@@ -163,6 +166,8 @@ class VoiceMail:
         # Show recording in progress
         self.message_indicator.turn_on()
 
+        # Record the message
+        retval = None
         if self.modem.record_audio(filepath, detect_silence):
             # Save to Message table (message.add will update the indicator)
             msg_no = self.messages.add(call_no, filepath)
@@ -172,11 +177,10 @@ class VoiceMail:
                 self.__send_email(caller, filepath)
 
             # Return the messageID on success
-            return msg_no
-        else:
-            self.reset_message_indicator()
-            # Return failure
-            return None
+            retval = msg_no
+
+        self.reset_message_indicator()
+        return retval
 
     def __send_email(self, caller, filepath):
         context = ssl.create_default_context()

@@ -22,8 +22,11 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-import paho.mqtt.client as mqtt
+
+import time
 import threading
+
+import paho.mqtt.client as mqtt
 
 # Client singleton
 mqtt_client = None
@@ -53,7 +56,8 @@ class MQTTIndicatorClient(object):
         if self.username is not None:
             client.username_pw_set(self.username, self.password)
         client.connect(self.server, self.port)
-        client.publish(self.topic_prefix + topic, message, retain=True)
+        ts = time.strftime(" (%Y-%m-%d %H:%M:%S)", time.localtime())
+        client.publish(self.topic_prefix + topic, str(message) + ts, retain=True)
         client.disconnect()
 
 

@@ -22,9 +22,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#import pydevd_pycharm
+#pydevd_pycharm.settrace('m4800', port=6969, stdoutToServer=True, stderrToServer=True)
+
 import os
 import sys
 import queue
+import signal
 import sqlite3
 import time
 import threading
@@ -54,7 +58,7 @@ class CallAttendant(object):
         self.config = config
 
         # Thread synchonization object
-        self._stop_event = threading.Event()
+        self._stop_flag = False
 
         # Open the database
         if self.config["TESTING"]:
@@ -154,14 +158,19 @@ class CallAttendant(object):
         caller = {}
         # Blink to confirm we have started
         self.approved_indicator.blink(2)
+        signal.signal(signal.SIGTERM, lambda sig, frame: self.set_stop_flag())
+
         print("Waiting for call...", flush=True)
-        while not self._stop_event.is_set():
+        while not self._stop_flag:
             try:
                 # Wait (blocking) for a caller
                 try:
-                    caller = self._caller_queue.get(True, 3.0)
+                    caller = self._caller_queue.get()
                 except queue.Empty:
                     continue
+                # if caller data is empty, we exit the loop
+                if caller == {}:
+                    break
 
                 # An incoming call has occurred, log it
                 number = caller["NMBR"]
@@ -234,22 +243,30 @@ class CallAttendant(object):
 
             except KeyboardInterrupt:
                 print("** User initiated shutdown")
-                self.stop()
+                break
             except Exception as e:
                 pprint(e)
                 print("** Error running callattendant")
-                self.stop()
                 exit_code = 1
+                break
+
         return exit_code
 
-    def stop(self):
-        self._stop_event.set()
+    def set_stop_flag(self):
+        """
+        Called by the signal handler (SIGTERM) to set the stop flag.
+        Systemd uses signal to shutdown the service.
+        """
+        print("** Received SIGTERM")
+        self._stop_flag = True
+        self._caller_queue.put({})
 
     def shutdown(self):
         """
         Shuts down threads and releases resources.
         """
         print("Shutting down...")
+        self._stop_flag = True
         print("-> Stopping modem")
         self.modem.stop()
         print("-> Stopping voice mail")
@@ -333,6 +350,7 @@ class CallAttendant(object):
                 ring_count += 1
                 last_ring = datetime.now()
                 print(" > > > Ring count: {}".format(ring_count))
+                self.modem.ring_event.clear()
             # On wait timeout, test for ringing stopped
             elif (datetime.now() - last_ring).total_seconds() > RING_WAIT_SECS:
                 # Assume ringing has stopped before the ring count

@@ -27,8 +27,7 @@ import os
 from pprint import pprint
 from datetime import datetime
 
-
-global unplayed_count
+# Global variables
 unplayed_count = 0
 
 
@@ -184,5 +183,5 @@ class Message:
         if self.config["DEBUG"]:
             print("Unplayed message count is {}".format(unplayed_count))
 
+        # wake up message thread
         self.message_event.set()
-        self.message_event.clear()
