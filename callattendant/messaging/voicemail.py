@@ -104,11 +104,13 @@ class VoiceMail:
         """
         Thread function that updates the message indicators upon a message event.
         """
-        while not self._stop_flag:
+        while True:
             # Get the number of unread messages
             if self.message_event.wait():
                 if self.config["DEBUG"]:
                     print("Message Event triggered")
+                if self._stop_flag:
+                    break
                 self.reset_message_indicator()
                 self.message_event.clear()
 
@@ -146,6 +148,8 @@ class VoiceMail:
                 # Try again--up to a limit
                 self.modem.play_audio(invalid_response_file)
                 tries += 1
+        # Out of menu - update message indicator
+        self.reset_message_indicator()
 
     def record_message(self, call_no, caller, msg_file=None, detect_silence=True):
         """
@@ -179,7 +183,6 @@ class VoiceMail:
             # Return the messageID on success
             retval = msg_no
 
-        self.reset_message_indicator()
         return retval
 
     def __send_email(self, caller, filepath):
@@ -219,10 +222,10 @@ class VoiceMail:
             self.message_indicator.pulse()
             if self.config["STATUS_INDICATORS"] == "GPIO":
                 if unplayed_count < 10:
-                    self.message_count_indicator.display(unplayed_count)
+                    self.message_count_indicator.display = unplayed_count
                     self.message_count_indicator.decimal_point = False
                 else:
-                    self.message_count_indicator.display(9)
+                    self.message_count_indicator.display = 9
                     self.message_count_indicator.decimal_point = True
             else:
                 # Display actual count if not restricted by single digit

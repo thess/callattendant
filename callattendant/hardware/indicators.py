@@ -313,24 +313,35 @@ class MessageCountIndicator(object):
     The message count indicator displays the number of unplayed messages in the system.
     """
     def __init__(self, *pins, **kwargs):
+        self.value = 0
         if len(pins) > 0:
             self.seven_seg = SevenSegmentDisplay(*pins, **kwargs)
         else:
-            self.seven_seg = SevenSegmentDisplay(*GPIO_MESSAGE_COUNT_PINS, **GPIO_MESSAGE_COUNT_KWARGS)
+            # Allow absence of the 7-segment display
+            self.seven_seg = None
 
+    @property
+    def display(self):
+        return self.value
+
+    @display.setter
     def display(self, char):
-        self.seven_seg.display(char)
-
-    def display_hex(self, hexnumber):
-        self.seven_seg.display_hex(hexnumber)
+        self.value = char
+        if self.seven_seg is not None:
+            self.seven_seg.display(char)
 
     @property
     def decimal_point(self):
-        return self.seven_seg.decimal_point
+        if self.seven_seg is not None:
+            return self.seven_seg.decimal_point
+        else:
+            return False
 
     @decimal_point.setter
     def decimal_point(self, value):
-        self.seven_seg.decimal_point = value
+        if self.seven_seg is not None:
+            self.seven_seg.decimal_point = value
 
     def close(self):
-        self.seven_seg.close()
+        if self.seven_seg is not None:
+            self.seven_seg.close()

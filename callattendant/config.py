@@ -163,6 +163,7 @@ class Config(dict):
         self["DB_FILE"] = os.path.normpath(os.path.join(datapath, self["DATABASE"]))
 
         wavpath = os.path.join(datapath, self["NOTIFICATIONS_FOLDER"])
+        self["NOTIFICATIONS_FOLDER"] = os.path.normpath(wavpath)
         self["BLOCKED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["BLOCKED_GREETING_FILE"]))
         self["SCREENED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["SCREENED_GREETING_FILE"]))
         self["PERMITTED_GREETING_FILE"] = os.path.normpath(os.path.join(wavpath, self["PERMITTED_GREETING_FILE"]))

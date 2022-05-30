@@ -31,7 +31,7 @@ import queue
 import signal
 import sqlite3
 import time
-import threading
+
 from datetime import datetime
 from pprint import pprint
 from shutil import copyfile
@@ -301,10 +301,12 @@ class CallAttendant(object):
                 if "record_message" in actions:
                     print(">> Recording message...", flush=True)
                     self.voice_mail.record_message(call_no, caller)
+                    self.voice_mail.reset_message_indicator()
 
                 # Enter voice mail menu
                 elif "voice_mail" in actions:
                     print(">> Starting voice mail...", flush=True)
+                    # Message indicator is reset by message_menu()
                     self.voice_mail.voice_messaging_menu(call_no, caller)
 
             except RuntimeError as e:
@@ -406,8 +408,9 @@ def make_config(filename=None, datapath=None, create_folder=False):
     config.normalize_paths()
     # Initialize the data_path folder contents using the normalized paths
     init_data_path(config)
-    # Always print the configuration
-    config.pretty_print()
+    # Print the configuration if DEBUG
+    if config["DEBUG"]:
+        config.pretty_print()
 
     return config
 
@@ -437,7 +440,7 @@ def init_data_path(config):
     # Create folder for recorded notifications (populate default from kit "resources")
     wavpath = config["NOTIFICATIONS_FOLDER"]
     if not os.path.isdir(wavpath):
-        print("The is NOTIFICATIONS_FOLDER not present. Creating {}".format(wavpath))
+        print("The NOTIFICATIONS_FOLDER not present. Creating {}".format(wavpath))
         os.mkdir(wavpath)
 
 def get_args(argv):
