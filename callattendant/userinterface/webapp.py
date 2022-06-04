@@ -49,7 +49,7 @@ from pygments.formatters import HtmlFormatter
 from screening.query_db import query_db
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
-from messaging.voicemail import Message
+from messaging.message import Message
 import yaml
 import nextcall
 

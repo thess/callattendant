@@ -61,7 +61,7 @@ GET_MODEM_SETTINGS = "AT&V"
 DISABLE_ECHO_COMMANDS = "ATE0"
 ENABLE_ECHO_COMMANDS = "ATE1"
 ENABLE_FORMATTED_CID = "AT+VCID=1"
-ENABLE_FORMATTED_CID_CONEXANT = "AT-SCID=1;+VCID=1;-STE=1"
+ENABLE_FORMATTED_CID_CONEXANT = "AT-SCID=1;+VCID=1;-STE=3"
 ENABLE_VERBOSE_CODES = "ATV1"
 DISABLE_SILENCE_DETECTION = "AT+VSD=128,0"
 DISABLE_SILENCE_DETECTION_CONEXANT = "AT+VSD=0,0"
@@ -292,6 +292,8 @@ class Modem(object):
                 # Test for a complete set of caller ID data
                 # https://stackoverflow.com/questions/1285911/how-do-i-check-that-multiple-keys-are-in-a-dict-in-a-single-pass
                 if all(k in call_record for k in ("DATE", "TIME", "NAME", "NMBR")):
+                    # Already handled first RING (don't count twice)
+                    self.ring_event.clear()
                     # Queue caller for screening
                     print("> Queueing call {} for processing".format(call_record["NMBR"]))
                     handle_caller(call_record)
@@ -478,8 +480,8 @@ class Modem(object):
                     # <DLE><ETX> is in the stream
                     print(">> <DLE><ETX> Char Recieved... Stop recording.")
                     break
-                if (DCE_PHONE_OFF_HOOK in audio_data):
-                    # <DLE>H is in the stream
+                if (DCE_PHONE_OFF_HOOK in audio_data) or (DCE_PHONE_OFF_HOOK2 in audio_data):
+                    # <DLE>H or <DLE>P is in the stream
                     print(">> Local phone off hook... Stop recording")
                     break
                 if (DCE_BUSY_TONE in audio_data):
@@ -568,7 +570,7 @@ class Modem(object):
                     if debugging:
                         pprint(modem_data)
 
-                    if (DCE_PHONE_OFF_HOOK in modem_data):
+                    if (DCE_PHONE_OFF_HOOK in modem_data) or (DCE_PHONE_OFF_HOOK2 in modem_data):
                         raise RuntimeError("Local phone off hook... Aborting.")
 
                     if (DCE_RING in modem_data):

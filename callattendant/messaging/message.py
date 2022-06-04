@@ -30,8 +30,7 @@ from datetime import datetime
 # Global variables
 unplayed_count = 0
 
-
-class Message:
+class Message(object):
 
     def __init__(self, db, config):
         """
@@ -41,29 +40,26 @@ class Message:
             :config:
                 The applicaiton-wide config object.
         """
-        if config["DEBUG"]:
-            print("Initializing Message")
-
         self.db = db
         self.config = config
+        # Get message event from voicemail setup
+        self.message_event = config["MESSAGE_EVENT"]
 
-        # Get the message event object set by the VoiceMail class
-        self.message_event = self.config["MESSAGE_EVENT"]
+        # Create the table if it doesn't exist
+        sql = """
+            CREATE TABLE IF NOT EXISTS Message (
+                MessageID INTEGER PRIMARY KEY AUTOINCREMENT,
+                CallLogID INTEGER,
+                Played BOOLEAN DEFAULT 0 NOT NULL CHECK (Played IN (0,1)),
+                Filename TEXT,
+                DateTime TEXT,
+                FOREIGN KEY(CallLogID) REFERENCES CallLog(CallLogID));
+        """
+        curs = self.db.execute(sql)
+        self.db.commit()
+        curs.close()
 
-        # Create the message table if it does not exist
-        if self.db:
-            sql = """
-                CREATE TABLE IF NOT EXISTS Message (
-                    MessageID INTEGER PRIMARY KEY AUTOINCREMENT,
-                    CallLogID INTEGER,
-                    Played BOOLEAN DEFAULT 0 NOT NULL CHECK (Played IN (0,1)),
-                    Filename TEXT,
-                    DateTime TEXT,
-                    FOREIGN KEY(CallLogID) REFERENCES CallLog(CallLogID));"""
-            curs = self.db.cursor()
-            curs.executescript(sql)
-            curs.close()
-
+        # Get the number of unread messages
         self._update_unplayed_count()
 
         if config["DEBUG"]:
@@ -158,8 +154,9 @@ class Message:
         try:
             sql = "UPDATE Message SET Played=:played WHERE MessageID=:msg_no"
             arguments = {'msg_no': msg_no, 'played': played}
-            self.db.execute(sql, arguments)
+            curs = self.db.execute(sql, arguments)
             self.db.commit()
+            curs.close()
         except Exception as e:
             print("** Error updating message played status:")
             pprint(e)
@@ -179,6 +176,7 @@ class Message:
         curs = self.db.execute(sql)
         global unplayed_count
         unplayed_count = curs.fetchone()[0]
+        curs.close()
 
         if self.config["DEBUG"]:
             print("Unplayed message count is {}".format(unplayed_count))
