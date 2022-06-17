@@ -4,6 +4,8 @@
 # file: modem.py
 #
 # Copyright 2018-2020 Bruce Schubert <bruce@emxsys.com>
+# Rewrite for Python3 and handling of DLE escapes
+#   by: Ted Hess <thess@kitschensync.net>, June 2022
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +36,6 @@ import os
 import re
 import serial
 import subprocess
-import sys
 import threading
 import time
 import wave
@@ -49,8 +50,8 @@ CR_CODE = chr(13)       # Carraige return
 LF_CODE = chr(10)       # Line feed
 
 # Supported modem product codes returned by ATI0
-USR_5637_PRODUCT_CODE = b'5601'
-CONEXANT_PROODUCT_CODE = b'56000'
+USR_5637_PRODUCT_CODE = '5601'
+CONEXANT_PROODUCT_CODE = '56000'
 
 #  Modem AT commands:
 #  See http://support.usr.com/support/5637/5637-ug/ref_data.html
@@ -83,21 +84,24 @@ GO_OFF_HOOK = "ATH1"
 GO_ON_HOOK = "ATH0"
 TERMINATE_CALL = "ATH"
 
+
 # Modem DLE shielded codes - DCE to DTE modem data
-DCE_ANSWER_TONE = (chr(16) + chr(97)).encode()          # <DLE>-a
-DCE_BUSY_TONE = (chr(16) + chr(98)).encode()            # <DLE>-b
-DCE_FAX_CALLING_TONE = (chr(16) + chr(99)).encode()     # <DLE>-c
-DCE_DIAL_TONE = (chr(16) + chr(100)).encode()           # <DLE>-d
-DCE_DATA_CALLING_TONE = (chr(16) + chr(101)).encode()   # <DLE>-e
-DCE_LINE_REVERSAL = (chr(16) + chr(108)).encode()       # <DLE>-l
-DCE_PHONE_ON_HOOK = (chr(16) + chr(104)).encode()       # <DLE>-h
-DCE_PHONE_OFF_HOOK = (chr(16) + chr(72)).encode()       # <DLE>-H
-DCE_PHONE_OFF_HOOK2 = (chr(16) + chr(80)).encode()      # <DLE>-P (Conexant)
-DCE_QUIET_DETECTED = (chr(16) + chr(113)).encode()      # <DLE>-q (Conexant)
-DCE_RING = (chr(16) + chr(82)).encode()                 # <DLE>-R
-DCE_SILENCE_DETECTED = (chr(16) + chr(115)).encode()    # <DLE>-s
-DCE_TX_BUFFER_UNDERRUN = (chr(16) + chr(117)).encode()  # <DLE>-u
-DCE_END_VOICE_DATA_TX = (chr(16) + chr(3)).encode()     # <DLE><ETX>
+DLE_BYTE_CODE = DLE_CODE.encode()
+
+DCE_ANSWER_TONE = chr(97)         # <DLE>-a
+DCE_BUSY_TONE = chr(98)            # <DLE>-b
+DCE_FAX_CALLING_TONE = chr(99)     # <DLE>-c
+DCE_DIAL_TONE = chr(100)           # <DLE>-d
+DCE_DATA_CALLING_TONE = chr(101)   # <DLE>-e
+DCE_LINE_REVERSAL = chr(108)       # <DLE>-l
+DCE_PHONE_ON_HOOK = chr(104)       # <DLE>-h
+DCE_PHONE_OFF_HOOK = chr(72)       # <DLE>-H
+DCE_PHONE_OFF_HOOK2 = chr(80)      # <DLE>-P (Conexant)
+DCE_QUIET_DETECTED = chr(113)      # <DLE>-q (Conexant)
+DCE_RING = chr(82)                 # <DLE>-R
+DCE_SILENCE_DETECTED = chr(115)    # <DLE>-s
+DCE_TX_BUFFER_UNDERRUN = chr(117)  # <DLE>-u
+DCE_END_VOICE_DATA_TX = chr(3)     # <DLE><ETX>
 
 # System DLE shielded codes (single DLE) - DTE to DCE commands (used by USR 5637 modem)
 DTE_RAISE_VOLUME = (chr(16) + chr(117))           # <DLE>-u
@@ -107,8 +111,8 @@ DTE_END_VOICE_DATA_RX2 = (chr(16) + chr(94))      # <DLE>-^ Zoom
 DTE_END_VOICE_DATA_TX = (chr(16) + chr(3))        # <DLE><ETX>
 DTE_CLEAR_TRANSMIT_BUFFER = (chr(16) + chr(24))   # <DLE><CAN>
 
-# Return codes
-CRLF = (chr(13) + chr(10)).encode()
+# Empty line (just CR/LF)
+CRLF = (chr(13) + chr(10))
 
 TEST_DATA = [
     b"RING", b"DATE=0801", b"TIME=1801", b"NMBR=8055554567", b"NAME=Test1 - Permitted", b"RING", b"RING", b"RING", b"RING",
@@ -204,11 +208,11 @@ class Modem(object):
                 A callback function that takes a caller dict object.
         """
         # Common constants
-        RING = "RING".encode("utf-8")
-        DATE = "DATE".encode("utf-8")
-        TIME = "TIME".encode("utf-8")
-        NAME = "NAME".encode("utf-8")
-        NMBR = "NMBR".encode("utf-8")
+        RING = "RING"
+        DATE = "DATE"
+        TIME = "TIME"
+        NAME = "NAME"
+        NMBR = "NMBR"
 
         # Testing variables
         dev_mode = self.config["ENV"] == "development"
@@ -241,13 +245,13 @@ class Modem(object):
                     # FYI: The verbose-form result codes are preceded and terminated by the
                     # sequence <CR><LF>. The numeric-form is also terminated by <CR> but it
                     # has no preceding sequence.
-                    modem_data = self._serial.readline()
+                    modem_data = self._serial.readline().decode("utf-8", "ignore").strip()
                     self._serial.timeout = save_timeout
 
                 # Some telcos do not supply all the caller info fields.
                 # If the modem timed out (empty modem data) or another RING occured,
                 # then look for and handle a partial set of caller info.
-                if (modem_data == b'' or RING in modem_data):
+                if (modem_data == '' or RING in modem_data):
                     # NMBR is required for processing a partial CID
                     if call_record.get('NMBR'):
                         now = datetime.now()
@@ -266,27 +270,27 @@ class Modem(object):
                         call_record = {}
 
                 # Process the modem data
-                if modem_data != b'' and modem_data != CRLF:
+                if modem_data != '':
                     # Some debugging/dev tasks here
                     if debugging:
                         print(modem_data)
                     if dev_mode:
-                        logfile.write(modem_data)
+                        logfile.write(modem_data.encode())
                         logfile.flush()
                     # Process the modem data
                     if RING in modem_data:
                         self.ring()
                     elif DATE in modem_data:
-                        items = decode(modem_data).split('=')
+                        items = modem_data.split('=')
                         call_record['DATE'] = items[1].strip()
                     elif TIME in modem_data:
-                        items = decode(modem_data).split('=')
+                        items = modem_data.split('=')
                         call_record['TIME'] = items[1].strip()
                     elif NAME in modem_data:
-                        items = decode(modem_data).split('=')
+                        items = modem_data.split('=')
                         call_record['NAME'] = items[1].strip()
                     elif NMBR in modem_data:
-                        items = decode(modem_data).split('=')
+                        items = modem_data.split('=')
                         call_record['NMBR'] = items[1].strip()
 
                 # Test for a complete set of caller ID data
@@ -409,14 +413,23 @@ class Modem(object):
             time.sleep(1.0)
             # Play Audio File
             with wave.open(audio_file_name, 'rb') as wavefile:
-                # Adjust sleep interval between frames as necessary to smooth audio
-                sleep_interval = .100 if self.model == "USR" else .030
                 chunk = 1024
                 data = wavefile.readframes(chunk)
                 while data != b'':
                     self._serial.write(data)
                     data = wavefile.readframes(chunk)
-                    time.sleep(sleep_interval)
+                    # Check for DCE notifications
+                    if self._serial.in_waiting > 1:
+                        modem_data = self._serial.read(2).decode("utf-8", "ignore").strip()
+                        if modem_data != '':
+                            if modem_data[0] == DLE_CODE:
+                                if (modem_data[1] == DCE_PHONE_OFF_HOOK) or (modem_data[1] == DCE_PHONE_OFF_HOOK2):
+                                    print(">> Local phone is off-hook - abort playback")
+                                    break
+                                if modem_data[1] == DCE_TX_BUFFER_UNDERRUN:
+                                    print(">> Modem buffer underrun.")
+                                    continue
+                                print(">> DCE Notification: <DLE>{}".format(modem_data[1]))
 
                 self._send(DTE_END_VOICE_DATA_TX)
 
@@ -463,7 +476,7 @@ class Modem(object):
             start_time = datetime.now()
             record_timeout = self.config["VOICE_MAIL_RECORD_TIME"]
             CHUNK = 1024
-            audio_frames = []
+            audio_frames = 0
             # Define the range of amplitude values that are to be considered silence.
             # In the 8-bit audio data, silence is \0x7f or \0x80 (127.5 rounded up or down)
             threshold = 1
@@ -471,68 +484,83 @@ class Modem(object):
             max_silence = 128 + threshold
             silent_frame_count = 0
             success = True
-            while 1:
-                # Read audio data from the Modem
-                audio_data = self._serial.read(CHUNK)
-
-                # Scan the audio data for DLE codes from modem
-                if (DCE_END_VOICE_DATA_TX in audio_data):
-                    # <DLE><ETX> is in the stream
-                    print(">> <DLE><ETX> Char Recieved... Stop recording.")
-                    break
-                if (DCE_PHONE_OFF_HOOK in audio_data) or (DCE_PHONE_OFF_HOOK2 in audio_data):
-                    # <DLE>H or <DLE>P is in the stream
-                    print(">> Local phone off hook... Stop recording")
-                    break
-                if (DCE_BUSY_TONE in audio_data):
-                    print(">> Busy Tone... Stop recording.")
-                    break
-
-                # Test for silence
-                if detect_silence:
-                    if len(audio_data) == sum(1 for x in audio_data if min_silence <= x <= max_silence):
-                        # Increment number of contiguous silent frames
-                        silent_frame_count += 1
-                    else:
-                        silent_frame_count = 0
-                    # At 8KHz sample rate, 5 secs is ~40K bytes
-                    if silent_frame_count > 40:  # 40 frames is ~5 secs
-                        # TODO: Consider trimming silent tail from audio data.
-                        print(">> Silent frames detected... Stop recording.")
-                        break
-
-                # Timeout
-                if ((datetime.now() - start_time).seconds) > record_timeout:
-                    print(">> Stop recording: max time limit reached.")
-                    break
-
-                # Add Audio Data to Audio Buffer
-                audio_frames.append(audio_data)
-
-            # Save the file if there is audio
-            if len(audio_frames) > silent_frame_count:
-                print(">> Saving audio file.")
+            try:
                 with wave.open(audio_file_name, 'wb') as wf:
                     wf.setnchannels(1)
                     wf.setsampwidth(1)
                     wf.setframerate(8000)
-                    wf.writeframes(b''.join(audio_frames))
-            else:
-                print(">> Skipped saving silent audio.")
+                    wf.setcomptype('NONE', 'Not compressed')
+
+                    while True:
+                        # Read audio data from the Modem
+                        audio_data = self._serial.read(CHUNK)
+
+                        # Scan the audio data for DLE codes from modem
+                        idx = audio_data.find(DLE_BYTE_CODE)
+                        if (idx != -1) and (idx < len(audio_data) - 1):
+                            # Found a DLE code, check for specific escapes
+                            escaped_code = audio_data[idx + 1]
+                            if escaped_code == DCE_END_VOICE_DATA_TX :
+                                # <DLE><ETX> is in the stream
+                                print(">> <DLE><ETX> Char Recieved... Stop recording.")
+                                break
+                            if (escaped_code == DCE_PHONE_OFF_HOOK) or (escaped_code == DCE_PHONE_OFF_HOOK2):
+                                # <DLE>H or <DLE>P is in the stream
+                                print(">> Local phone off hook... Stop recording")
+                                break
+                            if escaped_code == DCE_BUSY_TONE:
+                                print(">> Busy Tone... Stop recording.")
+                                break
+
+                        # Test for silence
+                        if detect_silence:
+                            if len(audio_data) == sum(1 for x in audio_data if min_silence <= x <= max_silence):
+                                # Increment number of contiguous silent frames
+                                silent_frame_count += 1
+                            else:
+                                silent_frame_count = 0
+                            # At 8KHz sample rate, 5 secs is ~40K bytes
+                            if silent_frame_count > 40:  # 40 frames is ~5 secs
+                                # TODO: Consider trimming silent tail from audio data.
+                                print(">> Silent frames detected... Stop recording.")
+                                break
+
+                        # Timeout
+                        if ((datetime.now() - start_time).seconds) > record_timeout:
+                            print(">> Stop recording: max time limit reached.")
+                            break
+
+                        # Add Audio Data to output file
+                        wf.writeframes(audio_data)
+                        audio_frames += 1
+
+                    # Save the file if there is audio
+                    if audio_frames > silent_frame_count:
+                        print(">> Saving audio file.")
+                    else:
+                        print(">> Removing silent audio.")
+                        wf.close()
+                        os.remove(audio_file_name)
+                        success = False
+
+                print(">> Recording stopped after {} seconds.".format((datetime.now() - start_time).seconds))
+
+            except Exception as e:
+                print(">> Error in record_audio: ", e)
                 success = False
+            finally:
+                # Clear input buffer before sending commands else its
+                # contents may interpreted as the cmd's return code
+                self._serial.reset_input_buffer()
 
-            print(">> Recording stopped after {} seconds.".format((datetime.now() - start_time).seconds))
-
-            # Clear input buffer before sending commands else its
-            # contents may interpreted as the cmd's return code
-            self._serial.reset_input_buffer()
-
-            # Send End of Recieve Data state by passing "<DLE>!"
-            # USR-5637 note: The command returns <DLE><ETX>, but the DLE is stripped
-            # from the response during the test, so we only test for the ETX.
-            response = "OK" if self.model == "CONEXANT" else ETX_CODE
-            if not self._send(DTE_END_VOICE_DATA_RX, response):
-                print("* Error: Unable to signal end of data receive state")
+                # Send End of Recieve Data state by passing "<DLE>!"
+                # USR-5637 note: The command returns <DLE><ETX>
+                if not self._send(DTE_END_VOICE_DATA_RX, DLE_CODE + ETX_CODE):
+                    print("* Error: Unable to signal end of data receive state")
+                # OK indicates return to command mode
+                retval, response = self._read_response()
+                if not retval:
+                    print("* Error: Unable to return to command mode")
 
         return success
 
@@ -565,36 +593,50 @@ class Modem(object):
                 start_time = datetime.now()
                 modem_data = b''
                 while 1:
-                    # Read 1 bytes from the Modem into the buffer
-                    modem_data = modem_data + self._serial.read(1)
-                    if debugging:
-                        pprint(modem_data)
+                    # Read 2 bytes from the Modem
+                    modem_data = self._serial.read(2)
+                    # Check for escape sequence (2-chars)
+                    if (len(modem_data) > 0) and (modem_data[0] == DLE_BYTE_CODE):
+                        # Found a DLE code, check for specific escapes
+                        escaped_code = modem_data[1].decode()
+                        if debugging:
+                            print("<DLE><{}>".format(escaped_code))
 
-                    if (DCE_PHONE_OFF_HOOK in modem_data) or (DCE_PHONE_OFF_HOOK2 in modem_data):
-                        raise RuntimeError("Local phone off hook... Aborting.")
+                        if (escaped_code == DCE_PHONE_OFF_HOOK) or (escaped_code == DCE_PHONE_OFF_HOOK2):
+                            raise RuntimeError("Local phone off hook... Aborting.")
 
-                    if (DCE_RING in modem_data):
-                        raise RuntimeError("Ring detected... Aborting.")
+                        if escaped_code == DCE_RING:
+                            raise RuntimeError("Ring detected... Aborting.")
 
-                    if (DCE_BUSY_TONE in modem_data):
-                        raise RuntimeError("Busy Tone... Aborting.")
+                        if escaped_code == DCE_BUSY_TONE:
+                            raise RuntimeError("Busy Tone... Aborting.")
 
-                    if (DCE_SILENCE_DETECTED in modem_data):
-                        raise RuntimeError("Silence Detected... Aborting.")
+                        if escaped_code == DCE_SILENCE_DETECTED:
+                            raise RuntimeError("Silence Detected... Aborting.")
 
-                    if (DCE_END_VOICE_DATA_TX in modem_data):
-                        raise RuntimeError("<DLE><ETX> Recieved... Aborting.")
+                        if escaped_code == DCE_END_VOICE_DATA_TX:
+                            raise RuntimeError("<DLE><ETX> Recieved... Aborting.")
+
+                        if escaped_code == '/':
+                            # Start of DTMF sequence
+                            digit_list = []
+                            continue
+
+                        if escaped_code in '0123456789*#ABCD':
+                            # Digit detected
+                            digit_list.append(escaped_code)
+                            continue
+
+                        if escaped_code == '~':
+                            # End of DTMF sequence
+                            if len(digit_list) > 0:
+                                if debugging:
+                                    print("DTMF Digits:")
+                                    pprint(digit_list)
+                                return True, digit_list[0]
 
                     if ((datetime.now() - start_time).seconds) > wait_time_secs:
                         raise RuntimeError("Timeout - wait time limit reached.")
-
-                    # Parse DTMF Digits, if found in the modem data
-                    digit_list = re.findall('[\d#\*]+', decode(modem_data))  # '/(.+?)~'
-                    if len(digit_list) > 0:
-                        if debugging:
-                            print("DTMF Digits:")
-                            pprint(digit_list)
-                        return True, digit_list[0]
 
             except RuntimeError as e:
                 print("Error in wait_for_keypress({}): {}".format(wait_time_secs, e))
@@ -636,7 +678,7 @@ class Modem(object):
                 number of seconds to wait for the command to respond
             :return:
                 True: if the command response matches the expected_response;
-                plus the result preceeding the command response, if any.
+                plus the result preceding the command response, if any.
         """
         with self._lock:
             try:
@@ -667,29 +709,28 @@ class Modem(object):
         """
         start_time = datetime.now()
         try:
-            result = b''
-            while 1:
-                modem_data = self._serial.readline()
-                result += modem_data
-                if self.config["DEBUG"]:
-                    pprint(modem_data)
-                response = decode(modem_data)  # strips DLE_CODE
-
-                if expected_response is None:
-                    return (True, None)
-
-                elif expected_response == response:
-                    return (True, result)
-
-                elif "ERROR" in response:
+            response = ''
+            while True:
+                modem_data = self._serial.readline().decode("utf-8", "ignore")
+                if modem_data != '':
+                    response += modem_data
                     if self.config["DEBUG"]:
-                        print(">>> _read_response returned ERROR")
-                    return (False, result)
+                        pprint(modem_data)
+                    if expected_response is None:
+                        return (True, None)
 
-                elif (datetime.now() - start_time).seconds > response_timeout_secs:
+                    elif expected_response in response:
+                        return (True, response)
+
+                    elif "ERROR" in response:
+                        if self.config["DEBUG"]:
+                            print(">>> _read_response returned ERROR")
+                        return (False, response)
+
+                if (datetime.now() - start_time).seconds > response_timeout_secs:
                     if self.config["DEBUG"]:
                         print(">>> _read_response('{}',{}) timed out".format(expected_response, response_timeout_secs))
-                    return (False, result)
+                    return (False, response)
 
         except Exception as e:
             print("Error in _read_response('{}',{}): {}".format(expected_response, response_timeout_secs, e))
@@ -801,13 +842,6 @@ class Modem(object):
                 ENABLE_SILENCE_DETECTION_5_SECS = ENABLE_SILENCE_DETECTION_5_SECS_CONEXANT
                 ENABLE_SILENCE_DETECTION_10_SECS = ENABLE_SILENCE_DETECTION_10_SECS_CONEXANT
                 ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT;
-                # System DLE shielded codes (double DLE) - DTE to DCE commands
-                DTE_RAISE_VOLUME = (chr(16) + chr(16) + chr(117))                # <DLE><DLE>-u
-                DTE_LOWER_VOLUME = (chr(16) + chr(16) + chr(100))                # <DLE><DLE>-d
-                DTE_END_VOICE_DATA_RX = (chr(16) + chr(16) + chr(16) + chr(33))  # <DLE><DLE><DLE>-!
-                DTE_END_VOICE_DATA_TX = (chr(16) + chr(16) + chr(16) + chr(3))   # <DLE><DLE><DLE><ETX>
-                DTE_CLEAR_TRANSMIT_BUFFER = (chr(16) + chr(16) + chr(16) + chr(24))  # <DLE><DLE><DLE><CAN>
-
             else:
                 print("******* Unknown modem detected **********")
                 # We'll try to use the modem with the predefined USR AT commands if it supports VOICE mode.
@@ -850,10 +884,3 @@ class Modem(object):
             print("Error: _init_modem failed: {}".format(e))
             return False
         return True
-
-
-def decode(bytestr):
-    # Remove non-printable chars before decoding.
-    # ~ string = re.sub(b'[^\x00-\x7f]', b'', bytestr).decode("utf-8").strip(' \t\n\r' + DLE_CODE)
-    string = bytestr.decode("utf-8", "ignore").strip(' \t\n\r' + DLE_CODE)
-    return string

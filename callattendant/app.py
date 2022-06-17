@@ -309,7 +309,7 @@ class CallAttendant(object):
                     # Message indicator is reset by message_menu()
                     self.voice_mail.voice_messaging_menu(call_no, caller)
 
-            except RuntimeError as e:
+            except Exception as e:
                 print("** Error answering a call: {}".format(e))
 
             finally:
