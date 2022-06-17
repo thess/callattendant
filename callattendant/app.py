@@ -301,7 +301,7 @@ class CallAttendant(object):
                 if "record_message" in actions:
                     print(">> Recording message...", flush=True)
                     self.voice_mail.record_message(call_no, caller)
-                    self.voice_mail.reset_message_indicator()
+                    self.voice_mail.message_event.set()
 
                 # Enter voice mail menu
                 elif "voice_mail" in actions:

@@ -558,7 +558,7 @@ class Modem(object):
                 if not self._send(DTE_END_VOICE_DATA_RX, DLE_CODE + ETX_CODE):
                     print("* Error: Unable to signal end of data receive state")
                 # OK indicates return to command mode
-                retval, response = self._read_response()
+                retval, response = self._read_response("OK", 5)
                 if not retval:
                     print("* Error: Unable to return to command mode")
 
@@ -591,52 +591,42 @@ class Modem(object):
 
                 # Wait for keypress
                 start_time = datetime.now()
-                modem_data = b''
-                while 1:
-                    # Read 2 bytes from the Modem
-                    modem_data = self._serial.read(2)
-                    # Check for escape sequence (2-chars)
-                    if (len(modem_data) > 0) and (modem_data[0] == DLE_BYTE_CODE):
-                        # Found a DLE code, check for specific escapes
-                        escaped_code = modem_data[1].decode()
-                        if debugging:
-                            print("<DLE><{}>".format(escaped_code))
+                modem_data = ''
+                while wait_time_secs > (datetime.now() - start_time).seconds:
+                    # Read 1 byte from the Modem
+                    modem_char = self._serial.read().decode("utf-8", "ignore")
+                    if modem_char == '':
+                        continue
+                    modem_data += modem_char
+                    if ((DLE_CODE + DCE_PHONE_OFF_HOOK) in modem_data) or \
+                            ((DLE_CODE + DCE_PHONE_OFF_HOOK2) in modem_data):
+                        raise RuntimeError("Local phone off hook... Aborting.")
 
-                        if (escaped_code == DCE_PHONE_OFF_HOOK) or (escaped_code == DCE_PHONE_OFF_HOOK2):
-                            raise RuntimeError("Local phone off hook... Aborting.")
+                    if (DLE_CODE + DCE_RING) in modem_data:
+                        raise RuntimeError("Ring detected... Aborting.")
 
-                        if escaped_code == DCE_RING:
-                            raise RuntimeError("Ring detected... Aborting.")
+                    if (DLE_CODE + DCE_BUSY_TONE) in modem_data:
+                        raise RuntimeError("Busy Tone... Aborting.")
 
-                        if escaped_code == DCE_BUSY_TONE:
-                            raise RuntimeError("Busy Tone... Aborting.")
+                    if (DLE_CODE + DCE_SILENCE_DETECTED) in modem_data:
+                        raise RuntimeError("Silence Detected... Aborting.")
 
-                        if escaped_code == DCE_SILENCE_DETECTED:
-                            raise RuntimeError("Silence Detected... Aborting.")
+                    if (DLE_CODE + DCE_END_VOICE_DATA_TX) in modem_data:
+                        raise RuntimeError("<DLE><ETX> Recieved... Aborting.")
 
-                        if escaped_code == DCE_END_VOICE_DATA_TX:
-                            raise RuntimeError("<DLE><ETX> Recieved... Aborting.")
-
-                        if escaped_code == '/':
-                            # Start of DTMF sequence
-                            digit_list = []
-                            continue
-
-                        if escaped_code in '0123456789*#ABCD':
-                            # Digit detected
-                            digit_list.append(escaped_code)
-                            continue
-
-                        if escaped_code == '~':
-                            # End of DTMF sequence
+                    # Parse DTMF Digits, if found in the stream
+                    if (DLE_CODE + '/') in modem_data:
+                        # Search for ~ and extract the digits
+                        if (modem_data.find('~') != -1):
+                            modem_data = modem_data.replace(chr(16), "")
+                            digit_list = re.findall('/(.+?)~', modem_data)
                             if len(digit_list) > 0:
-                                if debugging:
-                                    print("DTMF Digits:")
-                                    pprint(digit_list)
                                 return True, digit_list[0]
+                            modem_data = ''
+                        continue
 
-                    if ((datetime.now() - start_time).seconds) > wait_time_secs:
-                        raise RuntimeError("Timeout - wait time limit reached.")
+                print("Timeout limit exceeded: {}".format(wait_time_secs))
+                raise RuntimeError("Timeout - wait time limit reached.")
 
             except RuntimeError as e:
                 print("Error in wait_for_keypress({}): {}".format(wait_time_secs, e))

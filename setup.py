@@ -4,6 +4,7 @@
 #  setup.py
 #
 #  Copyright 2020 Bruce Schubert <bruce@emxsys.com>
+#  Copyright 2022 Ted Hess <thess@kitschensync.net>
 
 import setuptools
 
@@ -13,9 +14,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="callattendant",   # Add user name when uploading to TestPyPI
-    version="1.2.1",        # Ensure this is in-sync with VERSION in config.py
-    author="Bruce Schubert",
-    author_email="bruce@emxsys.com",
+    version="1.5.0",        # Ensure this is in-sync with VERSION in config.py
+    author="Ted Hess",
+    author_email="thess@kitschensync.net",
     description="An automated call attendant and call blocker using a Raspberry Pi and USR-5637 modem",
     long_description=long_description,
     long_description_content_type="text/markdown",

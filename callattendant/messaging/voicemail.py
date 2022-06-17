@@ -83,7 +83,7 @@ class VoiceMail:
         self._thread.start()
 
         # Pulse the indicator if an unplayed msg is waiting
-        self.reset_message_indicator()
+        self.message_event.set()
 
         if self.config["DEBUG"]:
             print("VoiceMail initialized")
@@ -149,7 +149,7 @@ class VoiceMail:
                 self.modem.play_audio(invalid_response_file)
                 tries += 1
         # Out of menu - update message indicator
-        self.reset_message_indicator()
+        self.message_event.set()
 
     def record_message(self, call_no, caller, msg_file=None, detect_silence=True):
         """
