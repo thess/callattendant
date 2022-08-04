@@ -77,8 +77,12 @@ class NomoroboService(object):
         except urllib.error.HTTPError as e:
             code = e.getcode()
             if code not in allowed_codes:
-                raise
+                print("** NOMOROBO error: {}".format(e))
+                return data
             data = e.read()
+        except urllib.error.URLError as e:
+            print("** NOMOROBO error: {}".format(e))
+
         return data
 
     def __init__(self, spam_threshold=2):

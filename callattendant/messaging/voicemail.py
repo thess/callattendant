@@ -137,9 +137,10 @@ class VoiceMail:
                 self.record_message(call_no, caller, self.config["VOICE_MAIL_LEAVE_MESSAGE_FILE"])
                 break
             elif digit == '0':
+                # Save caller to whitelist
+                self.whitelist.add_caller(caller, "Caller pressed 0")
                 self.modem.play_audio(voice_mail_callback_file)
                 self.modem.play_audio(goodbye_file)
-                self.whitelist.add_caller(caller, "Caller pressed 0")
                 break
             elif digit == '#':
                 self.modem.play_audio(goodbye_file)
@@ -165,7 +166,9 @@ class VoiceMail:
 
         # Play instructions to caller
         if msg_file:
-            self.modem.play_audio(msg_file)
+            success, retval = self.modem.play_audio(msg_file)
+            if not success or (retval == 'off-hook'):
+                return False, None
 
         # Show recording in progress
         self.message_indicator.turn_on()

@@ -97,6 +97,7 @@ DCE_LINE_REVERSAL = chr(108)       # <DLE>-l
 DCE_PHONE_ON_HOOK = chr(104)       # <DLE>-h
 DCE_PHONE_OFF_HOOK = chr(72)       # <DLE>-H
 DCE_PHONE_OFF_HOOK2 = chr(80)      # <DLE>-P (Conexant)
+DCE_PHONE_OFF_HOOK3 = chr(112)      # <DLE>-p (Conexant)
 DCE_QUIET_DETECTED = chr(113)      # <DLE>-q (Conexant)
 DCE_RING = chr(82)                 # <DLE>-R
 DCE_SILENCE_DETECTED = chr(115)    # <DLE>-s
@@ -154,8 +155,8 @@ class Modem(object):
                 self.config.get("GPIO_LED_RING_PIN"),
                 self.config.get("GPIO_LED_RING_BRIGHTNESS", 100))
         elif status_indicators == "NULL":
-           from hardware.nullgpio import RingIndicator
-           self.ring_indicator = RingIndicator()
+            from hardware.nullgpio import RingIndicator
+            self.ring_indicator = RingIndicator()
         elif status_indicators == "MQTT":
             from hardware.mqttindicators import MQTTRingIndicator
             self.ring_indicator = MQTTRingIndicator()
@@ -251,7 +252,7 @@ class Modem(object):
                 # Some telcos do not supply all the caller info fields.
                 # If the modem timed out (empty modem data) or another RING occured,
                 # then look for and handle a partial set of caller info.
-                if (modem_data == '' or RING in modem_data):
+                if (modem_data == '') or (RING in modem_data):
                     # NMBR is required for processing a partial CID
                     if call_record.get('NMBR'):
                         now = datetime.now()
@@ -274,9 +275,12 @@ class Modem(object):
                     # Some debugging/dev tasks here
                     if debugging:
                         print(modem_data)
+                        self._serial.flush()
+
                     if dev_mode:
                         logfile.write(modem_data.encode())
                         logfile.flush()
+
                     # Process the modem data
                     if RING in modem_data:
                         self.ring()
@@ -389,25 +393,24 @@ class Modem(object):
             :return:
                 True if successful
         """
-        if self.config["DEBUG"]:
+        debugging = self.config["DEBUG"]
+        if debugging:
             print("> Playing {}...".format(audio_file_name))
 
+        return_data = None
         self._serial.cancel_read()
         with self._lock:
 
             # Setup modem for transmitting audio data
             if not self._send(ENTER_VOICE_MODE):
                 print("* Error: Failed to put modem into voice mode.")
-                return False
+                return False, None
             if not self._send(SET_VOICE_COMPRESSION):
                 print("* Error: Failed to set compression method and sampling rate specifications.")
-                return False
+                return False, None
             if not self._send(TELEPHONE_ANSWERING_DEVICE_OFF_HOOK):
                 print("* Error: Unable put modem into telephone answering device mode.")
-                return False
-            if not self._send(ENTER_VOICE_TRANSMIT_DATA_STATE, "CONNECT"):
-                print("* Error: Unable put modem into voice data transmit state.")
-                return False
+                return False, None
 
             # wait before we speak
             time.sleep(1.0)
@@ -415,25 +418,45 @@ class Modem(object):
             with wave.open(audio_file_name, 'rb') as wavefile:
                 chunk = 1024
                 data = wavefile.readframes(chunk)
+                if len(data) > 0:
+                    if not self._send(ENTER_VOICE_TRANSMIT_DATA_STATE, "CONNECT"):
+                        print("* Error: Unable put modem into voice data transmit state.")
+                        return False, None
+                # pump out message
                 while data != b'':
                     self._serial.write(data)
                     data = wavefile.readframes(chunk)
                     # Check for DCE notifications
                     if self._serial.in_waiting > 1:
-                        modem_data = self._serial.read(2).decode("utf-8", "ignore").strip()
+                        modem_data = self._serial.read(self._serial.in_waiting).decode("utf-8", "ignore").strip()
+                        if debugging:
+                            print(">> play_audio input: {}".format(modem_data))
                         if modem_data != '':
                             if modem_data[0] == DLE_CODE:
-                                if (modem_data[1] == DCE_PHONE_OFF_HOOK) or (modem_data[1] == DCE_PHONE_OFF_HOOK2):
-                                    print(">> Local phone is off-hook - abort playback")
+                                if (modem_data[1] == DCE_PHONE_OFF_HOOK) or \
+                                        (modem_data[1] == DCE_PHONE_OFF_HOOK2) or \
+                                        (modem_data[1] == DCE_PHONE_OFF_HOOK3):
+                                    print(">> Local phone off-hook - abort playback")
+                                    return_data = 'off-hook'
                                     break
                                 if modem_data[1] == DCE_TX_BUFFER_UNDERRUN:
-                                    print(">> Modem buffer underrun.")
+                                    print(">> Underrun -- ignoring")
                                     continue
+                                if modem_data[1] == '/':
+                                    # Search for ~ and extract the digits
+                                    if (modem_data.find('~') != -1):
+                                        modem_data = modem_data.replace(DLE_CODE, "")
+                                        digit_list = re.findall('/(.+?)~', modem_data)
+                                        if len(digit_list) > 0:
+                                            print(">> Terminate playback")
+                                            return_data = digit_list[0]
+                                            break
+
                                 print(">> DCE Notification: <DLE>{}".format(modem_data[1]))
 
                 self._send(DTE_END_VOICE_DATA_TX)
 
-        return True
+        return True, return_data
 
     def record_audio(self, audio_file_name, detect_silence=True):
         """
@@ -499,18 +522,27 @@ class Modem(object):
                         idx = audio_data.find(DLE_BYTE_CODE)
                         if (idx != -1) and (idx < len(audio_data) - 1):
                             # Found a DLE code, check for specific escapes
-                            escaped_code = audio_data[idx + 1]
+                            escaped_code = chr(audio_data[idx + 1])
                             if escaped_code == DCE_END_VOICE_DATA_TX :
                                 # <DLE><ETX> is in the stream
                                 print(">> <DLE><ETX> Char Recieved... Stop recording.")
                                 break
-                            if (escaped_code == DCE_PHONE_OFF_HOOK) or (escaped_code == DCE_PHONE_OFF_HOOK2):
+                            if (escaped_code == DCE_PHONE_OFF_HOOK) or \
+                                    (escaped_code == DCE_PHONE_OFF_HOOK2) or \
+                                    (escaped_code == DCE_PHONE_OFF_HOOK3):
                                 # <DLE>H or <DLE>P is in the stream
                                 print(">> Local phone off hook... Stop recording")
                                 break
                             if escaped_code == DCE_BUSY_TONE:
                                 print(">> Busy Tone... Stop recording.")
                                 break
+                            if escaped_code == '/':
+                                # Search for ~ and extract the digits
+                                idx2 = audio_data.find(b'~', idx + 2)
+                                if idx2 != -1:
+                                    digit_data = audio_data[idx + 2:idx2].decode().replace(DLE_CODE, '')
+                                    print(">> Keypad data received: {}".format(digit_data))
+                                    break
 
                         # Test for silence
                         if detect_silence:
@@ -598,8 +630,12 @@ class Modem(object):
                     if modem_char == '':
                         continue
                     modem_data += modem_char
+                    if debugging and len(modem_data) > 1:
+                        print(">> Keypress Data: {}".format(modem_data))
+
                     if ((DLE_CODE + DCE_PHONE_OFF_HOOK) in modem_data) or \
-                            ((DLE_CODE + DCE_PHONE_OFF_HOOK2) in modem_data):
+                            ((DLE_CODE + DCE_PHONE_OFF_HOOK2) in modem_data) or \
+                            ((DLE_CODE + DCE_PHONE_OFF_HOOK3) in modem_data):
                         raise RuntimeError("Local phone off hook... Aborting.")
 
                     if (DLE_CODE + DCE_RING) in modem_data:
@@ -617,8 +653,8 @@ class Modem(object):
                     # Parse DTMF Digits, if found in the stream
                     if (DLE_CODE + '/') in modem_data:
                         # Search for ~ and extract the digits
-                        if (modem_data.find('~') != -1):
-                            modem_data = modem_data.replace(chr(16), "")
+                        if modem_data.find('~') != -1:
+                            modem_data = modem_data.replace(DLE_CODE, "")
                             digit_list = re.findall('/(.+?)~', modem_data)
                             if len(digit_list) > 0:
                                 return True, digit_list[0]
@@ -629,7 +665,7 @@ class Modem(object):
                 raise RuntimeError("Timeout - wait time limit reached.")
 
             except RuntimeError as e:
-                print("Error in wait_for_keypress({}): {}".format(wait_time_secs, e))
+                print("Exiting wait_for_keypress({}): {}".format(wait_time_secs, e))
 
         return False, ''
 
@@ -688,7 +724,7 @@ class Modem(object):
         """
         Handles the command response code from the modem.
         Called by _send() and operates within the _send method's lock context.
-            :param expected response:
+            :param expected_response:
                 the expected response, e.g. "OK"
             :param response_timeout_secs:
                 number of seconds to wait for the command to respond
@@ -812,6 +848,7 @@ class Modem(object):
             ENABLE_FORMATTED_CID
 
         # Test if connected to a modem using basic AT command.
+        self._serial.reset_input_buffer()
         if not self._send("AT"):
             return False
 
@@ -831,7 +868,7 @@ class Modem(object):
                 DISABLE_SILENCE_DETECTION = DISABLE_SILENCE_DETECTION_CONEXANT
                 ENABLE_SILENCE_DETECTION_5_SECS = ENABLE_SILENCE_DETECTION_5_SECS_CONEXANT
                 ENABLE_SILENCE_DETECTION_10_SECS = ENABLE_SILENCE_DETECTION_10_SECS_CONEXANT
-                ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT;
+                ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT
             else:
                 print("******* Unknown modem detected **********")
                 # We'll try to use the modem with the predefined USR AT commands if it supports VOICE mode.

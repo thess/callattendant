@@ -295,19 +295,23 @@ class CallAttendant(object):
                 # Play greeting
                 if "greeting" in actions:
                     print(">> Playing greeting...", flush=True)
-                    self.modem.play_audio(greeting)
+                    success, retval = self.modem.play_audio(greeting)
+                    if not success or (retval == 'off-hook'):
+                        return
 
                 # Record message
                 if "record_message" in actions:
                     print(">> Recording message...", flush=True)
                     self.voice_mail.record_message(call_no, caller)
                     self.voice_mail.message_event.set()
+                    return
 
                 # Enter voice mail menu
                 elif "voice_mail" in actions:
                     print(">> Starting voice mail...", flush=True)
                     # Message indicator is reset by message_menu()
                     self.voice_mail.voice_messaging_menu(call_no, caller)
+                    return
 
             except Exception as e:
                 print("** Error answering a call: {}".format(e))
