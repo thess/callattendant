@@ -188,6 +188,7 @@ class CallAttendant(object):
                 if nextcall.is_next_call_permitted(self.config['PERMIT_NEXT_CALL_FLAG']):
                     caller_permitted = True
                     action = "Permitted"
+                    reason = "Next Caller Flag"
                     self.approved_indicator.blink()
 
                 # Check the whitelist

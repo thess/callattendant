@@ -24,6 +24,7 @@
 #  SOFTWARE.
 
 import os
+import sys
 import threading
 import time
 from messaging.message import Message
@@ -113,6 +114,7 @@ class VoiceMail:
                     break
                 self.reset_message_indicator()
                 self.message_event.clear()
+                sys.stdout.flush()
 
     def voice_messaging_menu(self, call_no, caller):
         """
