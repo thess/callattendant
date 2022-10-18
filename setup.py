@@ -17,7 +17,7 @@ setuptools.setup(
     version="1.5.1",        # Ensure this is in-sync with VERSION in config.py
     author="Ted Hess",
     author_email="thess@kitschensync.net",
-    description="An automated call attendant and call blocker using a Raspberry Pi and USR-5637 modem",
+    description="An automated call attendant and call blocker using a USR5637 or CX930xx modem",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://emxsys.github.io/callattendant/",

@@ -31,6 +31,7 @@
 
 from datetime import datetime
 from pprint import pprint
+import csv
 
 from screening.query_db import query_db
 
@@ -162,3 +163,39 @@ class Whitelist(object):
         args = (number,)
         results = query_db(self.db, query, args, False)
         return results
+
+    def import_numbers(self, tempfile):
+        """
+        Imports a list of numbers from a file in CSV format
+        The file should contain one entry per line. [PhoneNo, Name, Reason]
+        :param tempfile: Python file object
+        :return: (total, new, updated)
+        """
+        try:
+            csv_reader = csv.DictReader(tempfile.file)
+            linecount = 0
+            lc_new = 0
+            lc_upd = 0
+            for row in csv_reader:
+                if linecount == 0:
+                    print(f'Column names are {", ".join(row)}')
+                record = {
+                    'NMBR' : "".join(filter(str.isalnum, row['PhoneNo'])).upper(),
+                    'NAME' : row['Name'].strip(),
+                }
+                reason = row['Reason'] if row['Reason'] != "" else "Imported"
+                found, x = self.check_number(record['NMBR'])
+                if found:
+                    self.update_number(record['NMBR'], record['NAME'], reason.strip())
+                    lc_upd += 1
+                else:
+                    self.add_caller(record, reason.strip())
+                    lc_new += 1
+                linecount += 1
+        except Exception as e:
+            print("** Failed to import numbers:")
+            pprint(e)
+            return (0, 0, 0)
+
+        print("Imported {} rows: {} added, {} updated".format(linecount, lc_new, lc_upd))
+        return (linecount, lc_new, lc_upd)

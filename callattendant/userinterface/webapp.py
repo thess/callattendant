@@ -32,6 +32,7 @@ from __future__ import division
 
 import logging
 import os
+import tempfile
 import random
 import string
 import _thread
@@ -42,6 +43,7 @@ import sqlite3
 from flask import Flask, request, g, current_app, render_template, redirect, \
     jsonify, flash
 from flask_paginate import Pagination, get_page_args
+
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
@@ -546,9 +548,9 @@ def callers_blocked():
     records = []
     for record in result_set:
         number = record[0]
-        phone_no = format_phone_no(number)
         records.append(dict(
-            Phone_Number=phone_no,
+            INumber = number,
+            FmtNumber=format_phone_no(number),
             Name=record[1],
             Reason=record[2],
             System_Date_Time=record[3][:19]))
@@ -638,9 +640,9 @@ def callers_permitted():
     records = []
     for record in result_set:
         number = record[0]
-        phone_no = format_phone_no(number)
         records.append(dict(
-            Phone_Number=phone_no,
+            INumber=number,
+            FmtNumber=format_phone_no(number),
             Name=record[1],
             Reason=record[2],
             System_Date_Time=record[3][:19]))  # Strip the decimal secs
@@ -665,7 +667,6 @@ def callers_permitted():
         pagination=pagination,
     )
 
-
 @app.route('/callers/permitted/add', methods=['POST'])
 def callers_permitted_add():
     """
@@ -684,6 +685,40 @@ def callers_permitted_add():
         # Probably already exists... attempt to update with POST form data
         return redirect('/callers/permitted/update/{}'.format(number), code=307)
 
+
+def allowed_file(filename):
+    return True
+
+@app.route('/callers/permitted/import', methods=['POST', 'GET'])
+def callers_permitted_import():
+    """
+    Upload, read and parse CSV of permitted numbers
+    """
+    if request.method == 'POST':
+        if 'File' not in request.files:
+            flash('Error: No file part')
+            return redirect(request.referrer, code=500)
+        file = request.files['File']
+        if file.filename == '':
+            flash('File name missing')
+            return redirect(request.referrer, code=303)
+        if file and allowed_file(file.filename):
+            config = current_app.config.get("MASTER_CONFIG")
+            with tempfile.NamedTemporaryFile(mode='w+', dir=config.data_path,
+                                             prefix='PermitImport_', delete=True) as tf:
+                file.save(os.path.join(config.data_path, tf.name))
+                print("Importing permitted numbers from: {}".format(tf.name))
+                whitelist = Whitelist(get_db(), current_app.config)
+                lc = whitelist.import_numbers(tf)
+            if lc[0] > 0:
+                flash('Imported {} numbers: {} added, {} updated'.format(lc[0], lc[1], lc[2]))
+                return redirect(request.referrer, code=301)
+            else:
+                flash('File import failed')
+                return redirect(request.referrer, code=303)
+        else:
+            flash('File type not allowed')
+            return redirect(request.referrer, code=303)
 
 @app.route('/callers/permitted/update/<string:phone_no>', methods=['POST'])
 def callers_permitted_update(phone_no):

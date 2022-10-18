@@ -29,19 +29,19 @@
         {% for row in blacklist %}
         <tr>
           <td class="manage-caller">
-            <a href="/calls?search={{ row.Phone_Number }}&submit=phone"><b>{{ row.Phone_Number }}</b></a> -
+            <a href="/calls?search={{ row.FmtNumber }}&submit=phone"><b>{{ row.FmtNumber }}</b></a> -
             <span class="d-lg-none"><br></span>
             <i>{{ row.Name }}</i>
           </td>
           <td>{{ row.Reason }}</td>
           <td class="px-1">
             <button type="button" class="btn btn-outline-light text-dark" data-toggle="modal" data-target="#updateModal"
-                data-blocked-phone="{{ row.Phone_Number }}" data-blocked-name="{{ row.Name }}" data-blocked-reason="{{ row.Reason }}">
+                data-blocked-phone="{{ row.FmtNumber }}" data-blocked-name="{{ row.Name }}" data-blocked-reason="{{ row.Reason }}">
               <img src="../static/pencil.svg" alt="" width="24" height="24" title="Edit">
             </button>
           </td>
           <td>
-            <button type="button" class="btn btn-outline-light text-dark" onClick="location.href='/callers/blocked/delete/{{ row.Phone_Number }}'">
+            <button type="button" class="btn btn-outline-light text-dark" onClick="location.href='/callers/blocked/delete/{{ row.INumber }}';">
               <img src="../static/trash.svg" alt="" width="24" height="24" title="Trash">
             </button>
           </td>
