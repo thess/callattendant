@@ -37,11 +37,13 @@ import random
 import string
 import _thread
 from datetime import datetime, timedelta
-from pprint import pformat
+from pprint import pformat, pprint
 
+import io
+import csv
 import sqlite3
 from flask import Flask, request, g, current_app, render_template, redirect, \
-    jsonify, flash
+    Response, jsonify, flash, send_file
 from flask_paginate import Pagination, get_page_args
 
 from pygments import highlight
@@ -549,7 +551,6 @@ def callers_blocked():
     for record in result_set:
         number = record[0]
         records.append(dict(
-            INumber = number,
             FmtNumber=format_phone_no(number),
             Name=record[1],
             Reason=record[2],
@@ -608,7 +609,7 @@ def callers_blocked_update(phone_no):
     return redirect("/callers/blocked", code=303)
 
 
-@app.route('/callers/blocked/delete/<string:phone_no>', methods=['GET'])
+@app.route('/callers/blocked/delete/<string:phone_no>', methods=['POST'])
 def callers_blocked_delete(phone_no):
     """
     Delete the blacklist entry associated with the phone number.
@@ -619,8 +620,26 @@ def callers_blocked_delete(phone_no):
     blacklist = Blacklist(get_db(), current_app.config)
     blacklist.remove_number(number)
 
-    return redirect("/callers/blocked", code=301)  # (re)moved permamently
+    return Response(status=200)
 
+@app.route('/callers/blocked/export', methods=['GET'])
+def callers_blocked_export():
+    """
+    Export the blacklist to a CSV file
+    """
+    query = 'SELECT * FROM Blacklist ORDER BY datetime(SystemDateTime) DESC'
+    return callers_export(query, 'callattendant_blacklist.csv')
+
+@app.route('/callers/blocked/import', methods=['GET', 'POST'])
+def callers_blocked_import():
+    """
+    Import the blacklist from a CSV file
+    """
+    if request.method == 'POST':
+        db_table = Blacklist(get_db(), current_app.config)
+        callers_import(db_table, request)
+
+    return redirect("/callers/blocked", code=303)
 
 @app.route('/callers/permitted')
 def callers_permitted():
@@ -641,7 +660,6 @@ def callers_permitted():
     for record in result_set:
         number = record[0]
         records.append(dict(
-            INumber=number,
             FmtNumber=format_phone_no(number),
             Name=record[1],
             Reason=record[2],
@@ -686,39 +704,111 @@ def callers_permitted_add():
         return redirect('/callers/permitted/update/{}'.format(number), code=307)
 
 
-def allowed_file(filename):
-    return True
+def callers_export(query, filename):
+    g.cur.execute(query)
+    results = g.cur.fetchall()
 
-@app.route('/callers/permitted/import', methods=['POST', 'GET'])
-def callers_permitted_import():
+    proxy = io.StringIO()
+    writer = csv.writer(proxy)
+    writer.writerow(['PhoneNo', 'Name', 'Reason'])
+    for row in results:
+        reason = row[2].replace("  ")
+        writer.writerow([format_phone_no(row[0]), row[1], reason])
+
+    # Create the byteIO object from the StringIO Object
+    mem_records = io.BytesIO()
+    mem_records.write(proxy.getvalue().encode())
+    # seek/rewind was necessary. Python 3.5.2, Flask 0.12.2
+    mem_records.seek(0)
+    proxy.close()
+
+    return send_file(
+        mem_records,
+        as_attachment=True,
+        attachment_filename=filename,
+        mimetype='text/csv',
+        cache_timeout=0
+    )
+
+@app.route('/callers/permitted/export', methods=['GET'])
+def callers_permitted_export():
+    """
+    Export the permitted numbers from the whitelist table
+    """
+    query = 'SELECT * FROM Whitelist ORDER BY datetime(SystemDateTime) DESC'
+    return callers_export(query, 'callattendant_whitelist.csv')
+
+def import_numbers(table, tempfile):
+        """
+        Imports a list of numbers from a file in CSV format
+        The file should contain one entry per line. [PhoneNo, Name, Reason]
+        :param tempfile: Python file object
+        :return: (total, new, updated)
+        """
+        try:
+            csv_reader = csv.DictReader(tempfile.file)
+            linecount = 0
+            lc_new = 0
+            lc_upd = 0
+            for row in csv_reader:
+                if linecount == 0:
+                    print(f'Column names are {", ".join(row)}')
+                record = {
+                    'NMBR' : "".join(filter(str.isalnum, row['PhoneNo'])).upper(),
+                    'NAME' : row['Name'].strip(),
+                }
+                reason = row['Reason'] if row['Reason'] != "" else "Imported"
+                found, x = table.check_number(record['NMBR'])
+                if found:
+                    table.update_number(record['NMBR'], record['NAME'], reason.strip())
+                    lc_upd += 1
+                else:
+                    table.add_caller(record, reason.strip())
+                    lc_new += 1
+                linecount += 1
+        except Exception as e:
+            print("** Failed to import numbers:")
+            pprint(e)
+            return (0, 0, 0)
+
+        print("Imported {} rows: {} added, {} updated".format(linecount, lc_new, lc_upd))
+        return (linecount, lc_new, lc_upd)
+
+def callers_import(table, request):
     """
     Upload, read and parse CSV of permitted numbers
     """
     if request.method == 'POST':
         if 'File' not in request.files:
             flash('Error: No file part')
-            return redirect(request.referrer, code=500)
+            return False
+
         file = request.files['File']
-        if file.filename == '':
-            flash('File name missing')
-            return redirect(request.referrer, code=303)
-        if file and allowed_file(file.filename):
+        if file and file.filename != '':
             config = current_app.config.get("MASTER_CONFIG")
             with tempfile.NamedTemporaryFile(mode='w+', dir=config.data_path,
                                              prefix='PermitImport_', delete=True) as tf:
                 file.save(os.path.join(config.data_path, tf.name))
                 print("Importing permitted numbers from: {}".format(tf.name))
-                whitelist = Whitelist(get_db(), current_app.config)
-                lc = whitelist.import_numbers(tf)
+
+                lc = import_numbers(table, tf)
             if lc[0] > 0:
                 flash('Imported {} numbers: {} added, {} updated'.format(lc[0], lc[1], lc[2]))
-                return redirect(request.referrer, code=301)
+                return True
             else:
                 flash('File import failed')
-                return redirect(request.referrer, code=303)
+                return False
         else:
-            flash('File type not allowed')
-            return redirect(request.referrer, code=303)
+            flash('No file name given')
+            return False
+
+@app.route('/callers/permitted/import', methods=['POST', 'GET'])
+def callers_permitted_import():
+    if request.method == 'POST':
+        db_table = Whitelist(get_db(), current_app.config)
+        callers_import(db_table, request)
+
+    return redirect("/callers/permitted", code=303)
 
 @app.route('/callers/permitted/update/<string:phone_no>', methods=['POST'])
 def callers_permitted_update(phone_no):
@@ -734,7 +824,7 @@ def callers_permitted_update(phone_no):
     return redirect("/callers/permitted", code=303)
 
 
-@app.route('/callers/permitted/delete/<string:phone_no>', methods=['GET'])
+@app.route('/callers/permitted/delete/<string:phone_no>', methods=['POST'])
 def callers_permitted_delete(phone_no):
     """
     Delete the whitelist entry associated with the phone number.
@@ -745,7 +835,7 @@ def callers_permitted_delete(phone_no):
     whitelist = Whitelist(get_db(), current_app.config)
     whitelist.remove_number(number)
 
-    return redirect("/callers/permitted", code=301)  # (re)moved permamently
+    return Response(status=200)
 
 @app.route('/callers/permitnextcall')
 def Callers_permit_next_call():

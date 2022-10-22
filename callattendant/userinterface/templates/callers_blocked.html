@@ -11,7 +11,8 @@
   </h2>
   <div>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add New</button>
-  </div>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importModal">Import Numbers</button>
+    <button type="button" class="btn btn-primary" onclick="location.href='/callers/blocked/export'">Export Numbers</button>  </div>
   <br/>
   <div class="mb-2">
     {% if blacklist %}
@@ -41,7 +42,8 @@
             </button>
           </td>
           <td>
-            <button type="button" class="btn btn-outline-light text-dark" onClick="location.href='/callers/blocked/delete/{{ row.INumber }}';">
+            <button type="button" class="btn btn-outline-light text-dark" data-toggle="modal" data-target="#deleteModal"
+                data-blocked-phone="{{ row.FmtNumber }}"  data-blocked-name="{{ row.Name }}">
               <img src="../static/trash.svg" alt="" width="24" height="24" title="Trash">
             </button>
           </td>
@@ -118,6 +120,54 @@
     </div>
   </div>
 </div>
+
+<!-- Import Modal-->
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importModalLabel">Import CSV file</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form enctype = "multipart/form-data">
+        <div class="modal-body">
+          <div class="form-group">
+            <input type = "file" name = "File" />
+          </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type = "submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal-->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm entry deletion</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6> Remove entry for <b><span id="deleteFmtPhone"></span></b> ?</h6>
+        <h6> Caller&colon; <b><span id="deleteEntryName"></span></b></h6>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-dismiss="modal" id="deleteEntryButton">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block js %}
@@ -131,6 +181,12 @@ $('#back-button').on('click', function (event) {
 $('#addModal').on('show.bs.modal', function (event) {
   var modal = $(this)
   modal.find('.modal-dialog form').attr('action', '/callers/blocked/add')
+  modal.find('.modal-dialog form').attr('method', 'post')
+})
+// Import
+$('#importModal').on('show.bs.modal', function (event) {
+  var modal = $(this)
+  modal.find('.modal-dialog form').attr('action', '/callers/blocked/import')
   modal.find('.modal-dialog form').attr('method', 'post')
 })
 
@@ -148,6 +204,20 @@ $('#updateModal').on('show.bs.modal', function (event) {
   modal.find('.modal-dialog form').attr('method', 'post')
   modal.find('#update-name').val(name)
   modal.find('#update-reason').val(reason)
+})
+// Delete
+$('#deleteModal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget)
+  var phone = button.data('blocked-phone')
+  var modal = $(this)
+  modal.find('#deleteFmtPhone').text(phone)
+  modal.find('#deleteEntryName').text(button.data('blocked-name'))
+  modal.find('#deleteEntryButton').on('click', function (event) {
+    $.post('/callers/blocked/delete/' + phone)
+  })
+})
+$('#deleteModal').on('hidden.bs.modal', function (event) {
+  location.reload()
 })
 </script>
 {% endblock %}

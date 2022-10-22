@@ -26,6 +26,7 @@
 
 import urllib.request
 from bs4 import BeautifulSoup
+import re
 
 
 class NomoroboService(object):
@@ -55,7 +56,9 @@ class NomoroboService(object):
         titles = soup.findAll(class_="profile-title")
         if len(titles) > 0:
             reason = titles[0].get_text()
+            # cleanup text and remove excess whitespace
             reason = reason.replace("\n", "").strip(" ")
+            reason = re.sub('\\s+', ' ', reason)
             # TODO: if score == 1, check for "Political", "Charity", and/or "Debt Collector"
             # in the reason and adjust the score if appropriate
 
