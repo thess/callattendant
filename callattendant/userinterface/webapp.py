@@ -544,7 +544,7 @@ def callers_blocked():
     )
 
     # Get the blacklist subset, limited to the pagination settings
-    sql = 'SELECT * FROM Blacklist ORDER BY datetime(SystemDateTime) DESC LIMIT {}, {}'.format(offset, per_page)
+    sql = 'SELECT * FROM Blacklist ORDER BY PhoneNo ASC LIMIT {}, {}'.format(offset, per_page)
     g.cur.execute(sql)
     result_set = g.cur.fetchall()
     records = []
@@ -652,7 +652,7 @@ def callers_permitted():
         page_parameter="page", per_page_parameter="per_page"
     )
     # Get the whitelist subset, limited to the pagination settings
-    sql = 'SELECT * FROM Whitelist ORDER BY datetime(SystemDateTime) DESC LIMIT {}, {}'.format(offset, per_page)
+    sql = 'SELECT * FROM Whitelist ORDER BY Name ASC LIMIT {}, {}'.format(offset, per_page)
     g.cur.execute(sql)
     result_set = g.cur.fetchall()
     # Build a list of formatted dict items
