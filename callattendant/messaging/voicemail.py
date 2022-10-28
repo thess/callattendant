@@ -34,6 +34,7 @@ import smtplib, ssl
 from email.mime.audio import MIMEAudio
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import socket
 
 class VoiceMail:
 
@@ -200,7 +201,8 @@ class VoiceMail:
                 message['To'] = self.config["EMAIL_TO"]
                 message['Subject'] = f'Voicemail message received from: {caller["NMBR"]}'
                 message['Date'] = time.strftime("%a, %d %b %Y %T %z (%Z)")
-                body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n')
+                body = MIMEText(f'Caller {caller["NMBR"]}, {caller["NAME"]} left a message.\n' +
+                                f'Listen to message at http://{socket.gethostname()}:5000/messages\n')
                 message.attach(body)
                 if self.config["EMAIL_WAVE_ATTACHMENT"]:
                     with open(filepath, 'rb') as wavefile:
