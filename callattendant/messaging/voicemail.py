@@ -136,6 +136,7 @@ class VoiceMail:
             success, digit = self.modem.wait_for_keypress(wait_secs)
             if not success:
                 break
+            print(">>Caller pressed: {}".format(digit))
             if digit == '1':
                 self.record_message(call_no, caller, self.config["VOICE_MAIL_LEAVE_MESSAGE_FILE"])
                 break

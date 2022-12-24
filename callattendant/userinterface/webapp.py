@@ -55,7 +55,7 @@ from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from messaging.message import Message
 import yaml
-import nextcall
+from screening.nextcall import NextCall
 
 # Create the Flask micro web-framework application
 app = Flask(__name__)
@@ -249,8 +249,13 @@ def dashboard():
             allowed=allowed_per_day.get(date_key, 0),
             screened=screened_per_day.get(date_key, 0)))
 
+    # Get state of permit_next_call flag
+    nextcall = NextCall(app.config['MASTER_CONFIG'])
+    permit_next = nextcall.is_next_call_permitted()
+
     if not current_app.config.get("MASTER_CONFIG").get("MODEM_ONLINE", True):
         flash('The modem is not online. Calls will not be screened or blocked. Check the logs and restart the CallAttendant.')
+
     # Render the resullts
     return render_template(
         'dashboard.html',
@@ -260,6 +265,7 @@ def dashboard():
         top_blocked=top_blocked,
         calls_per_day=calls_per_day,
         new_messages=new_messages,
+        permit_next = permit_next,
         total_calls='{:,}'.format(total_calls),
         blocked_calls='{:,}'.format(total_blocked),
         percent_blocked='{0:.0f}%'.format(percent_blocked))
@@ -839,8 +845,11 @@ def callers_permitted_delete(phone_no):
 
 @app.route('/callers/permitnextcall')
 def Callers_permit_next_call():
-    nextcall.permit_next_call(current_app.config.get("MASTER_CONFIG").get("PERMIT_NEXT_CALL_FLAG"))
-    return 'Next call will be permitted.'
+    nextcall = NextCall(app.config['MASTER_CONFIG'])
+    if nextcall.toggle_next_call_permitted():
+        return '1Next call will be permitted.'
+    else:
+        return '0Next call will handled normally.'
 
 
 @app.route('/messages')

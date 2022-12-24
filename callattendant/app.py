@@ -42,7 +42,7 @@ from screening.callscreener import CallScreener
 from hardware.modem import Modem
 from messaging.voicemail import VoiceMail
 import userinterface.webapp as webapp
-import nextcall
+from screening.nextcall import NextCall
 
 
 class CallAttendant(object):
@@ -107,6 +107,7 @@ class CallAttendant(object):
         # Screening subsystem
         self.logger = CallLogger(self.db, self.config)
         self.screener = CallScreener(self.db, self.config)
+        self.nextcall = NextCall(self.config)
 
         # Messaging subsystem
         self.voice_mail = VoiceMail(self.db, self.config, self.modem)
@@ -185,7 +186,9 @@ class CallAttendant(object):
 
                 # Check the Next Call Permitted
                 print("> Checking next-call-permitted")
-                if nextcall.is_next_call_permitted(self.config['PERMIT_NEXT_CALL_FLAG']):
+                if self.nextcall.is_next_call_permitted():
+                    # Reset the flag
+                    self.nextcall.toggle_next_call_permitted()
                     caller_permitted = True
                     action = "Permitted"
                     reason = "Next Caller Flag"

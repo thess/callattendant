@@ -90,7 +90,9 @@
       </div>
     </div>
     <div>
-       <button id="permit-next-call-button" type="button" class="btn btn-primary">Permit Next Call</button>
+       <button id="permit-next-call-button" type="button" class="btn btn-primary">
+           <span class="text">Permit Next Call{% if permit_next %} (ON){% endif %}</span>
+       </button>
     </div>
   </nav>
 
@@ -138,7 +140,10 @@
 
     $('#permit-next-call-button').on('click', function (event) {
       $.get(" /callers/permitnextcall", "", function(data, status) {
-        alert("Next call will be permitted.");
+        // Give the user some feedback
+        $('#permit-next-call-button span').text(
+          "Permit Next Call" + (data.charAt(0) === "1" ? " (ON)" : "" ));
+        alert(data.substring(1));
       });
     });
   </script>

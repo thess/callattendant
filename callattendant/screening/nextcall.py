@@ -28,14 +28,19 @@
 
 import os
 
-def is_next_call_permitted(flag_file):
-    if os.path.exists(flag_file):
-        os.remove(flag_file)
-        return True
+class NextCall(object):
+    """Track state of the next call flag"""
+    def __init__(self, config):
+        self.flag_file = config.get("PERMIT_NEXT_CALL_FLAG")
 
-    else:
-        return False
+    def is_next_call_permitted(self):
+        return os.path.exists(self.flag_file)
 
-def permit_next_call(flag_file):
-    with open(flag_file, 'w') as file:
-        file.write('Permit')
+    def toggle_next_call_permitted(self):
+        if os.path.exists(self.flag_file):
+            os.remove(self.flag_file)
+            return False
+        else:
+            with open(self.flag_file, 'w') as file:
+                file.write('Permit')
+            return True
