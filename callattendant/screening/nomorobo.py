@@ -61,6 +61,9 @@ class NomoroboService(object):
             reason = re.sub('\\s+', ' ', reason)
             # TODO: if score == 1, check for "Political", "Charity", and/or "Debt Collector"
             # in the reason and adjust the score if appropriate
+            if score == 1:
+                if reason.upper().find("UNKNOWN CALLER") > -1:
+                    score = 0
 
         spam = False if score < self.spam_threshold else True
 
