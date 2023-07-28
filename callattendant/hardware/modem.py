@@ -536,6 +536,9 @@ class Modem(object):
                             if escaped_code == DCE_BUSY_TONE:
                                 print(">> Busy Tone... Stop recording.")
                                 break
+                            if escaped_code == DCE_DIAL_TONE:
+                                print(">> Dial Tone... Stop recording.")
+                                break
                             if escaped_code == '/':
                                 # Search for ~ and extract the digits
                                 idx2 = audio_data.find(b'~', idx + 2)
