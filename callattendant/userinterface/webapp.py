@@ -41,6 +41,7 @@ from pprint import pformat, pprint
 
 import io
 import csv
+import re
 import sqlite3
 from flask import Flask, request, g, current_app, render_template, redirect, \
     Response, jsonify, flash, send_file
@@ -634,7 +635,7 @@ def callers_blocked_export():
     Export the blacklist to a CSV file
     """
     query = 'SELECT * FROM Blacklist ORDER BY datetime(SystemDateTime) DESC'
-    return callers_export(query, 'callattendant_blacklist.csv')
+    return callers_export(query, 'callattendant_blocklist.csv')
 
 @app.route('/callers/blocked/import', methods=['GET', 'POST'])
 def callers_blocked_import():
@@ -718,7 +719,8 @@ def callers_export(query, filename):
     writer = csv.writer(proxy)
     writer.writerow(['PhoneNo', 'Name', 'Reason'])
     for row in results:
-        reason = row[2].replace("  ")
+        # Remove extra whitespace from the reason
+        reason = re.sub(r"\s+", " ", row[2])
         writer.writerow([format_phone_no(row[0]), row[1], reason])
 
     # Create the byteIO object from the StringIO Object
@@ -742,7 +744,7 @@ def callers_permitted_export():
     Export the permitted numbers from the whitelist table
     """
     query = 'SELECT * FROM Whitelist ORDER BY datetime(SystemDateTime) DESC'
-    return callers_export(query, 'callattendant_whitelist.csv')
+    return callers_export(query, 'callattendant_permitlist.csv')
 
 def import_numbers(table, tempfile):
         """
