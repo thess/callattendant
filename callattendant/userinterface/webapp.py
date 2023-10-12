@@ -51,16 +51,18 @@ from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
 
+import yaml
 from screening.query_db import query_db
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
-from messaging.message import Message
-import yaml
 from screening.nextcall import NextCall
+from messaging.message import Message
 
 # Create the Flask micro web-framework application
-app = Flask(__name__)
-app.config.from_pyfile('webapp.cfg')
+app = Flask('callattendant',
+            template_folder='userinterface/templates',
+            static_folder='userinterface/static')
+app.config.from_pyfile('userinterface/webapp.cfg')
 
 
 @app.before_request
@@ -1201,7 +1203,7 @@ def run_flask(config):
 
     print("Running the Flask server")
     # debug mode prevents app from running in separate thread
-    app.run(host='0.0.0.0', debug=False)
+    app.run(host=config['HOST'], port=config['PORT'], debug=False)
 
 
 def start(config):

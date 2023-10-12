@@ -19,11 +19,14 @@ from werkzeug.utils import import_string
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '1.6.1',
+    "VERSION": '1.6.2',
 
     "ENV": 'production',
     "DEBUG": False,
     "TESTING": False,
+
+    "HOST": "0.0.0.0",
+    "PORT": 5000,
 
     "DATABASE": "callattendant.db",
     "NOTIFICATIONS_FOLDER": "notifications",

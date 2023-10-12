@@ -20,6 +20,10 @@ DEBUG = False
 # TESTING: If True function tests are executed in lieu of normal operation
 TESTING = False
 
+# Web UI options: HOST can be set to a specific IP address or "::" to include IPv6
+HOST = "0.0.0.0"
+PORT = 5000
+
 # DATABASE: Sqlite database for incoming call log, whitelist and blacklist
 #   This should not be changed/overrriden except during development/testing
 #DATABASE = "callattendant.db"
