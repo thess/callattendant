@@ -20,6 +20,12 @@ DEBUG = False
 # TESTING: If True function tests are executed in lieu of normal operation
 TESTING = False
 
+# Optional modem initialization string: (AT commands) to be sent to the modem
+#   Additional modem options can be set when necessary.
+#   See README.md notes regarding caller-id enable for Dell RD02-D400 modems.
+
+OPTIONAL_MODEM_INIT = ""
+
 # Web UI options: HOST can be set to a specific IP address or "::" to include IPv6
 HOST = "0.0.0.0"
 PORT = 5000

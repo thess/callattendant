@@ -96,6 +96,21 @@ The __callattendant__ uses the following hardware:
 - A 56K V.92 Data + Fax modem compatible with the **U.S. Robotics USR5637** or any device using a **Conexant CX930xx** modem have been proven effective.
 - [Optional] A GPIO based indicator board or an MQTT server.
 
+**Note:** Dell Conexant modems such as RD02-D400 are not compatible with the __callattendant__ without a firmware patch.
+A patch may be applied by adding a modem init string in the config file OPTIONAL_MODEM_INIT.
+Multiple commands may be specified by separating them with a semicolon. For example: `AT!4886=00;AT!4892=FF`
+
+ref: https://en.wikipedia.org/wiki/Network_Caller_ID (Note G)
+```
+CallerID can be reenabled in any CX93001-based modem by one of the following:
+AT!4886=00 for Bell FSK countries
+AT!4886=01 for V23 FSK (Japan)
+AT!4886=02 for ETSI FSK (France, Italy, Spain)
+AT!4886=03 for SIN227 (UK)
+AT!4886=05 for ETSI DTMF
+Sometimes additionally AT!4892=FF may be required.`
+```
+
 ---
 
 ## Software setup

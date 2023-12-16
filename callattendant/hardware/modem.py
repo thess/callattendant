@@ -59,6 +59,8 @@ RESET = "ATZ"
 RESET_PROFILE = "ATZ0"
 GET_MODEM_PRODUCT_CODE = "ATI0"
 GET_MODEM_SETTINGS = "AT&V"
+GET_MODEM_FIRMWARE_ID = "ATI3"
+GET_MODEM_PATCH_LEVEL_CONEXANT = "AT-PV"
 DISABLE_ECHO_COMMANDS = "ATE0"
 ENABLE_ECHO_COMMANDS = "ATE1"
 ENABLE_FORMATTED_CID = "AT+VCID=1"
@@ -585,7 +587,7 @@ class Modem(object):
                 success = False
             finally:
                 # Clear input buffer before sending commands else its
-                # contents may interpreted as the cmd's return code
+                # contents may be interpreted as the cmd's return code
                 self._serial.reset_input_buffer()
 
                 # Send End of Recieve Data state by passing "<DLE>!"
@@ -859,12 +861,13 @@ class Modem(object):
         (success, result) = self._send_and_read(GET_MODEM_PRODUCT_CODE)
 
         if success:
+            # Query firmware ID
+            self._send_and_read(GET_MODEM_FIRMWARE_ID)
             if USR_5637_PRODUCT_CODE in result:
-                print("******* US Robotics Model 5637 detected **********")
+                print("*** US Robotics modem detected ***")
                 self.model = "USR"
 
             elif CONEXANT_PROODUCT_CODE in result:
-                print("******* Conextant-based modem detected **********")
                 self.model = "CONEXANT"
                 # Define the settings for the Zoom3905 where they differ from the USR5637
                 SET_VOICE_COMPRESSION = SET_VOICE_COMPRESSION_CONEXANT
@@ -872,6 +875,9 @@ class Modem(object):
                 ENABLE_SILENCE_DETECTION_5_SECS = ENABLE_SILENCE_DETECTION_5_SECS_CONEXANT
                 ENABLE_SILENCE_DETECTION_10_SECS = ENABLE_SILENCE_DETECTION_10_SECS_CONEXANT
                 ENABLE_FORMATTED_CID = ENABLE_FORMATTED_CID_CONEXANT
+                # Query firmware patch level
+                self._send_and_read(GET_MODEM_PATCH_LEVEL_CONEXANT)
+                print("*** Conextant modem detected ***")
             else:
                 print("******* Unknown modem detected **********")
                 # We'll try to use the modem with the predefined USR AT commands if it supports VOICE mode.
@@ -896,6 +902,8 @@ class Modem(object):
         try:
             if not self._send(RESET):
                 print("Error: Unable reset to factory default")
+            if self.config["OPTIONAL_MODEM_INIT"]:
+                self._send(self.config["OPTIONAL_MODEM_INIT"])
             if not self._send(ENABLE_VERBOSE_CODES):
                 print("Error: Unable set response in verbose form")
             if not self._send(DISABLE_ECHO_COMMANDS):
