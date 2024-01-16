@@ -11,6 +11,7 @@ import errno
 import os
 import types
 
+from shutil import copyfile
 from tempfile import gettempdir
 from werkzeug.utils import import_string
 
@@ -19,7 +20,7 @@ from werkzeug.utils import import_string
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '1.6.3',
+    "VERSION": '1.6.4',
 
     "ENV": 'production',
     "DEBUG": False,
@@ -155,6 +156,26 @@ class Config(dict):
         self["ROOT_PATH"] = self.root_path
         self["DATA_PATH"] = self.data_path
 
+    def default_notification(self, wav_name):
+        """
+        Checks for default notification file and optionally copies from installed source.
+            :param name:
+                The message name (wave file)
+            :return:
+                True if file OK, else False
+        """
+        filepath = self[wav_name]
+        if not os.path.exists(filepath):
+            # Copy the default notification file to the notifications folder from install resources
+            print("* {} not found: {}".format(wav_name, filepath))
+            print("**  Copying default file to {}".format(filepath))
+            try:
+                copyfile(os.path.join(self.root_path, "resources", default_config[wav_name]), filepath)
+            except Exception as e:
+                print("* Could not copy default {}: {}".format(wav_name, e))
+                return False
+        return True
+
     def normalize_paths(self):
         """
         Normalizes the file based setting will absolute paths built from the
@@ -243,35 +264,22 @@ class Config(dict):
                 print("* Could not create default CALLERID_PATTERNS_FILE: {}".format(e))
                 success = False
 
-        filepath = self["BLOCKED_GREETING_FILE"]
-        if not os.path.exists(filepath):
-            print("* BLOCKED_GREETING_FILE not found: {}".format(filepath))
+        # Check for default notification files and copy from installed resources if not found
+        if not self.default_notification("BLOCKED_GREETING_FILE"):
             success = False
-        filepath = self["SCREENED_GREETING_FILE"]
-        if not os.path.exists(filepath):
-            print("* SCREENED_GREETING_FILE not found: {}".format(filepath))
+        if not self.default_notification("SCREENED_GREETING_FILE"):
             success = False
-        filepath = self["PERMITTED_GREETING_FILE"]
-        if not os.path.exists(filepath):
-            print("* PERMITTED_GREETING_FILE not found: {}".format(filepath))
+        if not self.default_notification("PERMITTED_GREETING_FILE"):
+            success = False
+        if not self.default_notification("VOICE_MAIL_GOODBYE_FILE"):
+            success = False
+        if not self.default_notification("VOICE_MAIL_LEAVE_MESSAGE_FILE"):
+            success = False
+        if not self.default_notification("VOICE_MAIL_INVALID_RESPONSE_FILE"):
+            success = False
+        if not self.default_notification("VOICE_MAIL_CALLBACK_FILE"):
             success = False
 
-        filepath = self["VOICE_MAIL_GOODBYE_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_GOODBYE_FILE not found: {}".format(filepath))
-            success = False
-        filepath = self["VOICE_MAIL_LEAVE_MESSAGE_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_LEAVE_MESSAGE_FILE not found: {}".format(filepath))
-            success = False
-        filepath = self["VOICE_MAIL_INVALID_RESPONSE_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_INVALID_RESPONSE_FILE not found: {}".format(filepath))
-            success = False
-        filepath = self["VOICE_MAIL_CALLBACK_FILE"]
-        if not os.path.exists(filepath):
-            print("* VOICE_MAIL_CALLBACK_FILE not found: {}".format(filepath))
-            success = False
         filepath = self["VOICE_MAIL_MESSAGE_FOLDER"]
         if not os.path.exists(filepath):
             print("* VOICE_MAIL_MESSAGE_FOLDER not found: {}".format(filepath))
