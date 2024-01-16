@@ -162,12 +162,11 @@ SCREENED_ACTIONS = ("answer", "greeting", "record_message")
 
 # SCREENED_GREETING_FILE: The wav file to be played to allowed callers.
 #   Example: "I'm sorry, I can't take your call."
-SCREENED_GREETING_FILE = "general_greeting.wav"
+SCREENED_GREETING_FILE = "screener_greeting.wav"
 
 # SCREENED_RINGS_BEFORE_ANSWER: The number of rings to wait before answering
 #   Example: 0 to act immediately, possibly before your local phone rings.
 SCREENED_RINGS_BEFORE_ANSWER = 0
-
 
 # PERMITTED_ACTIONS:  A tuple containing a combination of the following actions:
 #   "ignore" OR a combo of "answer", "greeting", "record_message", "voice_mail".
@@ -181,12 +180,6 @@ PERMITTED_GREETING_FILE = "general_greeting.wav"
 # PERMITTED_RINGS_BEFORE_ANSWER: The number of rings to wait before answering a call.
 #   Example: 4 to allow the callee to pick up the phone before going to voice mail.
 PERMITTED_RINGS_BEFORE_ANSWER = 0
-
-
-# VOICE_MAIL_GREETING_FILE: The wav file played after answering: a general greeting
-#   Example: "I'm sorry we missed your call..."
-# Deprecated: Not used anymore.
-#VOICE_MAIL_GREETING_FILE = "general_greeting.wav"
 
 # VOICE_MAIL_GOODBYE_FILE: The wav file play just before hanging up
 #   Example: "Goodbye"
@@ -203,11 +196,6 @@ VOICE_MAIL_LEAVE_MESSAGE_FILE = "please_leave_message.wav"
 # VOICE_MAIL_CALLBACK_FILE: The wav file played for whitelist callback
 #   Example: "You may hang up now and call back"
 VOICE_MAIL_CALLBACK_FILE = "thankyou_callback.wav"
-
-# VOICE_MAIL_MENU_FILE: The wav file with message instructions, played after the greeting
-#   Example: "Press 1 to leave a message..."
-# Deprecated - not used (see SCREENED actions, etc.)
-#VOICE_MAIL_MENU_FILE = "voice_mail_menu.wav"
 
 # VOICE_MAIL_MESSAGE_FOLDER: The folder where voice mail message are stored
 #   This should not be changed/overridden except during development/testing

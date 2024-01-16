@@ -50,7 +50,7 @@ default_config = {
     "BLOCKED_RINGS_BEFORE_ANSWER": 0,
 
     "SCREENED_ACTIONS": ("answer", "greeting", "record_message"),
-    "SCREENED_GREETING_FILE": "general_greeting.wav",
+    "SCREENED_GREETING_FILE": "screener_greeting.wav",
     "SCREENED_RINGS_BEFORE_ANSWER": 0,
 
     "PERMITTED_ACTIONS": ("ignore",),
