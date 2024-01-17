@@ -51,7 +51,7 @@ LF_CODE = chr(10)       # Line feed
 
 # Supported modem product codes returned by ATI0
 USR_5637_PRODUCT_CODE = '5601'
-CONEXANT_PROODUCT_CODE = '56000'
+CONEXANT_PRODUCT_CODE = '56000'
 
 #  Modem AT commands:
 #  See http://support.usr.com/support/5637/5637-ug/ref_data.html
@@ -867,7 +867,7 @@ class Modem(object):
                 print("*** US Robotics modem detected ***")
                 self.model = "USR"
 
-            elif CONEXANT_PROODUCT_CODE in result:
+            elif CONEXANT_PRODUCT_CODE in result:
                 self.model = "CONEXANT"
                 # Define the settings for the Zoom3905 where they differ from the USR5637
                 SET_VOICE_COMPRESSION = SET_VOICE_COMPRESSION_CONEXANT
