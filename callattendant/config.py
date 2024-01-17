@@ -29,6 +29,7 @@ default_config = {
     "HOST": "0.0.0.0",
     "PORT": 5000,
 
+    "MODEM_DEVICE": "",
     "OPTIONAL_MODEM_INIT": "",
 
     "DATABASE": "callattendant.db",

@@ -20,10 +20,14 @@ DEBUG = False
 # TESTING: If True function tests are executed in lieu of normal operation
 TESTING = False
 
+# Optional modem serial port (comma separated list permitted)
+#   If not specified, the modem will be auto-detected
+#   Example: "/dev/ttyUSB0, /dev/ttyACM0"
+MODEM_DEVICE = ""
+
 # Optional modem initialization string: (AT commands) to be sent to the modem
 #   Additional modem options can be set when necessary.
 #   See README.md notes regarding caller-id enable for Dell RD02-D400 modems.
-
 OPTIONAL_MODEM_INIT = ""
 
 # Web UI options: HOST can be set to a specific IP address or "::" to include IPv6
