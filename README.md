@@ -66,24 +66,24 @@ can be simply hung up on (optional message), or routed to the voice message syst
 
 You can review call history, voice messages, permitted and blocked numbers, and performing caller
 management through the Call Attendant's web interface. Here is an example of the home page with metrics and a convienient list of recent calls. For a complete description see the
-[User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide).
+[User Guide](https://github.com/thess/callattendant/wiki/User-Guide).
 
 ##### _Screenshots of the home page as seen on an IPad Pro and a Pixel 2 phone_
 
-![Dashboard-Responsive](https://github.com/emxsys/callattendant/raw/master/docs/dashboard-responsive.png)
+![Dashboard-Responsive](https://github.com/thess/callattendant/raw/master/docs/dashboard-responsive.png)
 
 ### Documentation
 
 The project wiki on GitHub contains the documentation for the Call Attendant:
 
-- See the [Wiki Home](https://github.com/emxsys/callattendant/wiki/Home) for complete
+- See the [Wiki Home](https://github.com/thess/callattendant/wiki/Home) for complete
   installation, configuration, and operation instructions.
-- See the [User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide) section for the
+- See the [User Guide](https://github.com/thess/callattendant/wiki/User-Guide) section for the
   web interface instructions.
-- The [Developer Guide](https://github.com/emxsys/callattendant/wiki/Developer-Guide) section
+- The [Developer Guide](https://github.com/thess/callattendant/wiki/Developer-Guide) section
   describes the software architecture and software development plan, and shows you how to setup
   your software development environment.
-- The [Advanced](https://github.com/emxsys/callattendant/wiki/Advanced) section addresses more
+- The [Advanced](https://github.com/thess/callattendant/wiki/Advanced) section addresses more
   complex setups and situations. For instance, _Running as a Service_.
 
 ### Hardware Requirements
@@ -231,7 +231,7 @@ To view the web interface, simply point your web browser to port `5000` on your 
 http://localhost:5000/
 ```
 
-See the [User Guide](https://github.com/emxsys/callattendant/wiki/User-Guide) for more information.
+See the [User Guide](https://github.com/thess/callattendant/wiki/User-Guide) for more information.
 
 ---
 
@@ -250,7 +250,7 @@ Then specify the configuration file and path on the command line, e.g.:
 callattendant --config app.cfg
 ```
 
-See the [Configuration](https://github.com/emxsys/callattendant/wiki/Home#configuration)
+See the [Configuration](https://github.com/thess/callattendant/wiki/Home#configuration)
 section in the project's wiki for more information.
 
 ---

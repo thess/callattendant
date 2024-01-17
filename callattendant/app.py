@@ -3,6 +3,7 @@
 # file: callattendant.py
 #
 # Copyright 2018 Bruce Schubert <bruce@emxsys.com>
+# Copyright 2022 Ted Hess <thess@kitschensync.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
