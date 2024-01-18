@@ -243,7 +243,7 @@ class Modem(object):
                     # Using a shorter timeout here (vs 3 secs) to improve performance
                     # with detecting partial caller ID scenarios
                     save_timeout = self._serial.timeout
-                    self._serial.timeout = 1
+                    self._serial.timeout = 0.5
                     # Wait/read a line of data from the serial port with the configured timeout.
                     # FYI: The verbose-form result codes are preceded and terminated by the
                     # sequence <CR><LF>. The numeric-form is also terminated by <CR> but it
@@ -311,6 +311,9 @@ class Modem(object):
                     # you could set the default name here, for example:
                     #   call_record{"NAME": "Unknown"}
                     call_record = {}
+
+                # Yield to other threads
+                time.sleep(0.0001)
 
         finally:
             if dev_mode:
