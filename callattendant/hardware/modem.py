@@ -454,7 +454,8 @@ class Modem(object):
                                         digit_list = re.findall('/(.+?)~', modem_data)
                                         if len(digit_list) > 0:
                                             print(">> Terminate playback")
-                                            return_data = digit_list[0]
+                                            # Return only the first digit found
+                                            return_data = digit_list[0][0]
                                             break
 
                                 print(">> DCE Notification: <DLE>{}".format(modem_data[1]))
@@ -665,7 +666,8 @@ class Modem(object):
                             modem_data = modem_data.replace(DLE_CODE, "")
                             digit_list = re.findall('/(.+?)~', modem_data)
                             if len(digit_list) > 0:
-                                return True, digit_list[0]
+                                # Return only the first digit found
+                                return True, digit_list[0][0]
                             modem_data = ''
                         continue
 
