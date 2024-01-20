@@ -226,6 +226,8 @@ EMAIL_WAVE_ATTACHMENT = False
 
 # Indicator modules can be one of: GPIO, NULL or MQTT. Multiple indicator type not supported.
 # Default is NULL (No special hardware)
+#     MQTT support requires 'paho.mqtt' installed
+#     GPIO (on RPi) requires 'gpizero' and supporting system interaces (E.g.: RPi.gpio and/or pigpio)
 STATUS_INDICATORS = "NULL"
 
 # MQTT settings if STATUS_INDICATORS is set to MQTT
