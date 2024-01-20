@@ -332,7 +332,11 @@ class Config(dict):
         print("[Configuration]")
         keys = sorted(self.keys())
         for key in keys:
-            print("  {} = {}".format(key, self[key]))
+            # Hide sensitive values
+            if (key == "EMAIL_SERVER_PASSWORD") | (key == "MQTT_PASSWORD"):
+                print("  {} = {}".format(key, "********"))
+            else:
+                print("  {} = {}".format(key, self[key]))
 
     def from_pyfile(self, filename, silent=False):
         """Updates the values in the config from a Python file.

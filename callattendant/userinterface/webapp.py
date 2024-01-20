@@ -28,7 +28,6 @@
 # https://github.com/pradeesi/Incoming_Call_Detail_Logger
 # https://iotbytes.wordpress.com/incoming-call-details-logger-with-raspberry-pi/
 # ==============================================================================
-from __future__ import division
 
 import logging
 import os

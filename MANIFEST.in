@@ -1,5 +1,3 @@
-include callattendant/data/DO_NOT_DELETE
-include callattendant/data/messages/DO_NOT_DELETE
 include callattendant/app.cfg.example
 include callattendant/resources/*
 include callattendant/userinterface/webapp.cfg
