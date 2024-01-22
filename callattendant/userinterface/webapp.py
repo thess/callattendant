@@ -985,8 +985,16 @@ def settings():
     # Get the application-wide config object
     config = current_app.config.get("MASTER_CONFIG")
 
+    # Filter out the EMAIL and MQTT passwords
+    saved_email_password = config['EMAIL_SERVER_PASSWORD']
+    config['EMAIL_SERVER_PASSWORD'] = "********"
+    saved_mqtt_password = config['MQTT_PASSWORD']
+    config['MQTT_PASSWORD'] = "********"
     # Read the current config into a str for display
     config_contents = pformat(config)
+    # Restore the passwords
+    config['EMAIL_SERVER_PASSWORD'] = saved_email_password
+    config['MQTT_PASSWORD'] = saved_mqtt_password
 
     # Read the config file contents into a buffer for display
     file_contents = ""
@@ -996,6 +1004,12 @@ def settings():
         file_path = os.path.join(config.data_path, file_name)
         with open(file_path, mode="r") as f:
             file_contents += f.read()
+
+    # filter out EMAIL and MQTT passwords
+    file_contents = re.sub(r"(^EMAIL_SERVER_PASSWORD\s*=\s*[\"'])(.*)([\"'])", r"\1********\3",
+                           file_contents, flags=re.M)
+    file_contents = re.sub(r"(^MQTT_PASSWORD\s*=\s*[\"'])(.*)([\"'])", r"\1********\3",
+                           file_contents, flags=re.M)
 
     # Convert the strings to pretty HTML
     curr_settings = highlight(config_contents, PythonLexer(), HtmlFormatter())
