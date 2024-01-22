@@ -9,7 +9,7 @@
   <h5>Name: {{ caller.name }}</h5>
   {% if caller.whitelisted == 'Y' %}
   <div class="alert alert-success" role="alert">
-     <h5><i>This caller is permitted and calls will not be screened or blocked</i></h4>
+     <h5><i>This caller is permitted and calls will not be screened or blocked</i></h5>
   </div>
   {% elif caller.blacklisted == 'Y' %}
   <div class="alert alert-danger" role="alert">
