@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="callattendant",   # Add user name when uploading to TestPyPI
+    name="callattendant",   # Add username when uploading to TestPyPI
     version="1.6.4",        # Ensure this is in-sync with VERSION in config.py
     author="Ted Hess",
     author_email="thess@kitschensync.net",
@@ -27,6 +27,7 @@ setuptools.setup(
         "Flask>=3.0.1",
         "flask-paginate>=0.6.0",
         "beautifulsoup4>=4.12.3",
+        "lxml>=5.1.0",
         "bs4>=0.0.2",
         "soupsieve>=2.5",
         "Werkzeug>=3.0.1",
