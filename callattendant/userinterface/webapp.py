@@ -853,7 +853,14 @@ def Callers_permit_next_call():
         return '1Next call will be permitted.'
     else:
         return '0Next call will handled normally.'
-
+        
+@app.route('/callers/querynextcall')
+def Callers_query_next_call():
+    nextcall = NextCall(app.config['MASTER_CONFIG'])
+    if not nextcall:
+        return '1Next call will be permitted.'
+    else:
+        return '0Next call will handled normally.'
 
 @app.route('/messages')
 def messages():
