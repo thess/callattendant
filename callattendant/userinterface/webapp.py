@@ -857,7 +857,7 @@ def Callers_permit_next_call():
 @app.route('/callers/querynextcall')
 def Callers_query_next_call():
     nextcall = NextCall(app.config['MASTER_CONFIG'])
-    if not nextcall:
+    if nextcall.is_next_call_permitted():
         return '1Next call will be permitted.'
     else:
         return '0Next call will handled normally.'
