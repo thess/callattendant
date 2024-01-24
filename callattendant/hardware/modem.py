@@ -281,6 +281,7 @@ class Modem(object):
 
                     if dev_mode:
                         logfile.write(modem_data.encode())
+                        logfile.write(os.linesep.encode())
                         logfile.flush()
 
                     # Process the modem data
