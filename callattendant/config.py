@@ -22,7 +22,6 @@ from werkzeug.utils import import_string
 default_config = {
     "VERSION": '1.6.4',
 
-    "ENV": 'production',
     "DEBUG": False,
     "TESTING": False,
 
@@ -213,10 +212,6 @@ class Config(dict):
                 True if the settings are permissible.
         """
         success = True
-
-        if self["ENV"] not in ("production", "development"):
-            print("* ENV is incorrect: {}".format(self["ENV"]))
-            success = False
 
         if not isinstance(self["DEBUG"], bool):
             print("* DEBUG should be a bool: {}".format(type(self["DEBUG"])))

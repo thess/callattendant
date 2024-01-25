@@ -10,10 +10,6 @@
 # values are syntactically valid.
 # ==============================================================================
 
-# ENV: "production" or "development" environment. "development" implies
-# the inclusion of incomplete features and/or experimental code.
-ENV = 'production'
-
 # DEBUG: If True additional assertions and output may be generated
 DEBUG = False
 

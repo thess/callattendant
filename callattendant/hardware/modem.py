@@ -218,17 +218,10 @@ class Modem(object):
         NMBR = "NMBR"
 
         # Testing variables
-        dev_mode = self.config["ENV"] == "development"
         debugging = self.config["DEBUG"]
         testing = self.config["TESTING"]
         test_index = 0
         logfile = None
-
-        # Save the modem data to a file for development purposes
-        if dev_mode:
-            print("Saving raw modem data to modem.log")
-            filename = os.path.join(self.config["DATA_PATH"], "modem.log")
-            logfile = open(filename, 'ab')
 
         # Handle incoming calls
         try:
@@ -279,10 +272,6 @@ class Modem(object):
                         print(modem_data)
                         self._serial.flush()
 
-                    if dev_mode:
-                        logfile.write(modem_data.encode())
-                        logfile.flush()
-
                     # Process the modem data
                     if RING in modem_data:
                         self.ring()
@@ -316,9 +305,7 @@ class Modem(object):
                 time.sleep(0.0001)
 
         finally:
-            if dev_mode:
-                print("-> Closing modem log file")
-                logfile.close()
+            print("Modem thread exiting")
 
     def pick_up(self):
         """
