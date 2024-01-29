@@ -1040,8 +1040,12 @@ def stringlist2dict(s):
     d = {}
     for line in s.splitlines():
         if line:
-            k, v = line.split(': ', 1)
-            d[k] = v
+            try:
+                k, v = line.split(': ', 1)
+                d[k] = v
+            except ValueError:
+                raise ValueError(line)
+
     return d
 
 @app.route('/callers/regexlists')
@@ -1064,14 +1068,17 @@ def callers_regexlists_save():
 
     # Get the data from the request and convert each list to a dict
     # Reload im-memory values (config object)
-    config.get("CALLERID_PATTERNS")['blocknames'] = stringlist2dict(request.form['blocknameslist'])
-    config.get("CALLERID_PATTERNS")['blocknumbers'] = stringlist2dict(request.form['blocknumberslist'])
-    config.get("CALLERID_PATTERNS")['permitnames'] = stringlist2dict(request.form['permitnameslist'])
-    config.get("CALLERID_PATTERNS")['permitnumbers'] = stringlist2dict(request.form['permitnumberslist'])
-    # Write the new patterns to a file
     try:
+        config.get("CALLERID_PATTERNS")['blocknames'] = stringlist2dict(request.form['blocknameslist'])
+        config.get("CALLERID_PATTERNS")['blocknumbers'] = stringlist2dict(request.form['blocknumberslist'])
+        config.get("CALLERID_PATTERNS")['permitnames'] = stringlist2dict(request.form['permitnameslist'])
+        config.get("CALLERID_PATTERNS")['permitnumbers'] = stringlist2dict(request.form['permitnumberslist'])
+
+        # Write the new patterns to a file
         with open(config.get("CALLERID_PATTERNS_FILE"), 'w') as file:
             yaml.dump(config.get("CALLERID_PATTERNS"), file, default_flow_style=False)
+    except ValueError as e:
+        return "error:\nRegex list contains improperly formatted 'key: value' entry:\n{}".format(str(e))
     except Exception as e:
         return str(e)
 

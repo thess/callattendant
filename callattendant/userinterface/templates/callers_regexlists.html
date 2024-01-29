@@ -20,10 +20,12 @@ textarea
   </h2>
 
   <button id="save-button" type="button" class="btn btn-primary" style="float: right;" disabled>Save</button>
-  <p>Edit the Block (blacklist) and Permit (whitelist) regular expressions here. Each line of text should have the format:
-  <br/><code style="margin-left: 3em">&lt;regex&gt; [: &lt;description&gt;]</code><br/>
+  <p>Edit the Block (blacklist) and Permit (whitelist) regular expressions here. Each line of text is formatted as a
+      YAML dictionary item. A YAML dictionary item is represented as a simple "<i>key:&nbsp;value<i>" pair.
+      The colon must be followed by a space. Example:
+  <br/><code style="margin-left: 3em">&lt;regex&gt;: &lt;description&gt;</code><br/>
   that is, a <a href="https://docs.python.org/3/library/re.html#regular-expression-syntax" target="_blank">regular expression</a>,
-  optionally followed by a colon and a human-readable description of who is being black or whitelisted.</p>
+      followed by ":&nbsp;" and an optional description of the callers being filtered.</p>
   <p>Regular expressions for names are case-insensitive.</p>
   <form id="regexlistsform" style="margin-top: 2em;">
       <div class="mb-2" style="width: 100%; display: table;">
