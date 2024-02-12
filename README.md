@@ -70,7 +70,7 @@ management through the Call Attendant's web interface. Here is an example of the
 
 ##### _Screenshots of the home page as seen on an IPad Pro and a Pixel 2 phone_
 
-![Dashboard-Responsive](https://github.com/thess/callattendant/raw/master/docs/dashboard-responsive.png)
+![Dashboard-Responsive](https://github.com/thess/callattendant/blob/fmsentry/docs/dashboard-responsive.png)
 
 ### Documentation
 
