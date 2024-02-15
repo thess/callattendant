@@ -24,7 +24,7 @@
 #  SOFTWARE.
 
 
-import urllib.request
+import requests
 from bs4 import BeautifulSoup
 import re
 
@@ -32,12 +32,9 @@ import re
 class NomoroboService(object):
 
     def lookup_number(self, number):
-        number = '{}-{}-{}'.format(number[0:3], number[3:6], number[6:])
-        url = "https://www.nomorobo.com/lookup/%s" % number
-        # print(url)
-        headers = {}
+        url = "https://www.nomorobo.com/lookup/{}-{}-{}".format(number[0:3], number[3:6], number[6:])
         allowed_codes = [404]  # allow not found response
-        content = self.http_get(url, headers, allowed_codes)
+        content = self.http_get(url, allowed_codes)
         soup = BeautifulSoup(content, "lxml")  # lxml HTML parser: fast
 
         score = 0  # = no spam
@@ -46,10 +43,8 @@ class NomoroboService(object):
         if len(positions) > 0:
             position = positions[0].get_text()
             if position.upper().find("DO NOT ANSWER") > -1:
-                # print("Spammer!")
                 score = 2  # = is spam
             else:
-                # print("Nuisance!")
                 score = 1  # = might be spam (caller is "Political", "Charity", or "Debt Collector")
 
         reason = ""
@@ -67,30 +62,22 @@ class NomoroboService(object):
 
         spam = False if score < self.spam_threshold else True
 
-        result = {
-            "spam": spam,
-            "score": score,
-            "reason": reason
-        }
-        return result
+        return {"spam": spam, "score": score, "reason": reason}
 
-    def http_get(self, url, add_headers={}, allowed_codes=[]):
+    def http_get(self, url, allowed_codes=None):
         data = ""
         try:
-            request = urllib.request.Request(url, headers=add_headers)
-            response = urllib.request.urlopen(request, timeout=5)
-            data = response.read()
-        except urllib.error.HTTPError as e:
-            code = e.getcode()
-            if code not in allowed_codes:
-                print("** NOMOROBO error: {}".format(e))
-                return data
-            data = e.read()
-        except urllib.error.URLError as e:
-            print("** NOMOROBO error: {}".format(e))
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.text
+            elif response.status_code not in allowed_codes:
+                response.raise_for_status()
+        except requests.HTTPError as e:
+            code = e.response.status_code
+            print("HTTPError: {}".format(code))
+            raise
 
         return data
 
     def __init__(self, spam_threshold=2):
-
         self.spam_threshold = spam_threshold

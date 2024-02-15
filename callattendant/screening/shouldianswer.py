@@ -32,7 +32,6 @@ class ShouldIAnswer(object):
 
     def lookup_number(self, number):
         url = "https://www.shouldianswer.com/phone-number/{!s}".format(number)
-        # print(url)
         allowed_codes = [404]  # allow not found response
         content = self.http_get(url, allowed_codes)
         # Assuming not spam
@@ -40,34 +39,27 @@ class ShouldIAnswer(object):
         score = 0
 
         soup = BeautifulSoup(content, "lxml")  # lxml HTML parser: fast
-
+        # MainInfo -> ScoreContainer -> div.?
+        # TODO: Further analysis of the score in "reviews' section warranted.
+        # scan items in reviews section
+        #   for "div.score.positive", ".neutral", ".negative" and ".unknown" divs
         scoreContainer = soup.find(class_="scoreContainer")
         if scoreContainer is not None:
             divScore = scoreContainer.select("div > .negative")
-            #print(divScore)
             if(divScore):
-                print("Spammer!")
                 score = 2
 
             numbers = soup.find(class_="number")
-            #print(numbers)
             if len(numbers) > 0:
                 spanReason = numbers.select("div > span")
                 reason = spanReason[0].get_text()
                 reason = reason.replace("\n", "").strip(" ")
-                #print(reason)
 
         spam = False if score < self.spam_threshold else True
 
-        result = {
-            "spam": spam,
-            "score": score,
-            "reason": reason
-        }
-        #print(result)
-        return result
+        return {"spam": spam, "score": score, "reason": reason}
 
-    def http_get(self, url, allowed_codes=[]):
+    def http_get(self, url, allowed_codes=None):
         session = requests.Session()
         data = ""
         try:
@@ -77,9 +69,10 @@ class ShouldIAnswer(object):
             elif response.status_code not in allowed_codes:
                 response.raise_for_status()
         except requests.HTTPError as e:
-            code = e.getcode()
-            print("HTTPError: {!s}".format(code))
+            code = e.response.status_code
+            print("HTTPError: {}".format(code))
             raise
+
         return data
 
     def __init__(self, spam_threshold=2):

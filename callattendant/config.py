@@ -20,7 +20,7 @@ from werkzeug.utils import import_string
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '1.6.5',
+    "VERSION": '1.7.0',
 
     "DEBUG": False,
     "TESTING": False,
@@ -221,6 +221,9 @@ class Config(dict):
             success = False
         if not isinstance(self["BLOCK_ENABLED"], bool):
             print("* BLOCK_ENABLED should be a bool: {}".format(type(self["BLOCK_ENABLED"])))
+            success = False
+        if self["BLOCK_SERVICE"] not in ("", "NOMOROBO", "SHOULDIANSWER"):
+            print("* BLOCK_SERVICE is invalid: {}".format(self["BLOCK_SERVICE"]))
             success = False
 
         for mode in self["SCREENING_MODE"]:

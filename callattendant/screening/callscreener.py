@@ -30,6 +30,7 @@ import sys
 from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from screening.nomorobo import NomoroboService
+from screening.shouldianswer import ShouldIAnswer
 import yaml
 
 
@@ -91,17 +92,19 @@ class CallScreener(object):
                         print(reason)
                         return True, reason
 
-                if self.config.get("BLOCK_SERVICE").upper() == "NOMOROBO":
-                    print(">> Checking nomorobo...")
-                    result = self._nomorobo.lookup_number(number)
+                if self._blockservice is not None:
+                    print(">> Checking block service...")
+                    result = self._blockservice.lookup_number(number)
                     if result["spam"]:
                         reason = "{} with score {}".format(result["reason"], result["score"])
                         if self.config["DEBUG"]:
                             print(">>> {}".format(reason))
                         self.blacklist_caller(callerid, reason)
                         return True, reason
+
                 print("Caller has been screened")
                 return False, "Not found"
+
         finally:
             sys.stdout.flush()
 
@@ -119,8 +122,15 @@ class CallScreener(object):
 
         self._blacklist = Blacklist(db, config)
         self._whitelist = Whitelist(db, config)
-        # Set blocking threshold to 1 to filter nuisance calls
-        self._nomorobo = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
+
+        bs = config["BLOCK_SERVICE"].upper()
+        if bs == "NOMOROBO":
+            # Set blocking threshold to 1 to filter nuisance calls
+            self._blockservice = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
+        elif bs == "SHOULDIANSWER":
+            self._blockservice = ShouldIAnswer(config["BLOCK_SERVICE_THRESHOLD"])
+        else:
+            self._blockservice = None
 
         # Load number and name patterns into config vars
         try:
