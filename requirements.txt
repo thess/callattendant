@@ -1,6 +1,6 @@
 Flask~=3.0.1
 flask-paginate~=0.6.0
-requests~=2.25.0
+requests~=2.31.0
 beautifulsoup4~=4.12.3
 bs4~=0.0.2
 lxml~=5.1.0

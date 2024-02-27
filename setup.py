@@ -27,7 +27,7 @@ setuptools.setup(
         "Flask>=3.0.1",
         "flask-paginate>=0.6.0",
         "beautifulsoup4>=4.12.3",
-        "requests>=2.25.0",
+        "requests>=2.31.0",
         "lxml>=5.1.0",
         "bs4>=0.0.2",
         "soupsieve>=2.5",
