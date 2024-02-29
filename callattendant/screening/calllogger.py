@@ -17,6 +17,11 @@ class CallLogger(object):
             :param caller: a dict object containing the caller ID info
             :return: The CallLogID of the new record
         """
+        # If the date is only 4 characters long, append the current year (for leap years)
+        caller_date = callerid['DATE']
+        if (len(caller_date) == 4):
+            caller_date += str(datetime.now().year)
+
         # Add a row
         sql = """INSERT INTO CallLog(
             Name,
@@ -31,8 +36,8 @@ class CallLogger(object):
                      callerid['NMBR'],
                      action,
                      reason,
-                     datetime.strptime(callerid['DATE'], '%m%d'). strftime('%d-%b'),
-                     datetime.strptime(callerid['TIME'], '%H%M'). strftime('%I:%M %p'),
+                     datetime.strptime(caller_date, '%m%d%Y').strftime('%d-%b'),
+                     datetime.strptime(callerid['TIME'], '%H%M').strftime('%I:%M %p'),
                      (datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:19])]
 
         self.db.execute(sql, arguments)
