@@ -25,7 +25,7 @@ setuptools.setup(
     include_package_data=True,      # Includes files from MANIFEST.in
     install_requires=[
         "Flask>=3.0.1",
-        "flask-paginate>=0.6.0",
+        "flask-paginate>=2023.10.24",
         "beautifulsoup4>=4.12.3",
         "requests>=2.31.0",
         "lxml>=5.1.0",

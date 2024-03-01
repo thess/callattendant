@@ -32,7 +32,7 @@ unplayed_count = 0
 
 class Message(object):
 
-    def __init__(self, db, config):
+    def __init__(self, db, config, event):
         """
         Initialize the database tables for voice messages.
             :param db:
@@ -43,7 +43,7 @@ class Message(object):
         self.db = db
         self.config = config
         # Get message event from voicemail setup
-        self.message_event = config["MESSAGE_EVENT"]
+        self.message_event = event
 
         # Create the table if it doesn't exist
         sql = """

@@ -1,5 +1,5 @@
 Flask~=3.0.1
-flask-paginate~=0.6.0
+flask-paginate~=2023.10.24
 requests~=2.31.0
 beautifulsoup4~=4.12.3
 bs4~=0.0.2
