@@ -51,6 +51,7 @@ class VoiceMail:
 
         # Create a message event shared with the Message class used to monitor changes
         self.message_event = threading.Event()
+        self.config["MESSAGE_EVENT"] = self.message_event
 
         # Initialize the message indicators (LEDs)
         status_indicators = self.config["STATUS_INDICATORS"]
@@ -74,7 +75,7 @@ class VoiceMail:
             self.message_count_indicator = MQTTMessageCountIndicator()
 
         # Create the Message object used to interface with the DB
-        self.messages = Message(db, config, self.message_event)
+        self.messages = Message(db, config)
         self.whitelist = Whitelist(db, config)
 
         # Start the thread that monitors the message events and updates the indicators
