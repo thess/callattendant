@@ -141,7 +141,7 @@ $ which python
 .../venv/bin/python
 
 $ python --version
-Python 3.7.3
+Python 3.9.2
 ```
 
 Installation of the __callattendant__ software will be placed within the virtual environment folder (under `lib/python3.x/site-packages` to be exact). The virtual environment, when activated, alters your _PATH_ so that the system looks for python and its packages within this folder hierarchy.
@@ -152,11 +152,17 @@ The software is available on [Github](https://github.com/thess/callattendant/rel
 Install and update using `pip` or from source:
 
 ```bash
-# Using pip
+# For a first time installation of lxml 5.x, you may need to install
+#   the development dependencies libxml2 and libxslt.
+# Note: You only have to do this once
+
+$ sudo apt install libxml2-dev libxslt-dev
+
+# Option 1: Using pip
 $ source venv/bin/activate
 $ pip3 install "callattendant@git+https://github.com/thess/callattendant"
 
-# From source (download source tarball from github or clone repository)
+# Option 2: From source (download source tarball from github or clone repository)
 $ cd <download directory>
 $ source <virtualenv-location>/venv/bin/activate
 $ python3 setup.py install
