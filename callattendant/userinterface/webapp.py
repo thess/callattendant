@@ -734,9 +734,9 @@ def callers_export(query, filename):
     return send_file(
         mem_records,
         as_attachment=True,
-        attachment_filename=filename,
+        download_name=filename,
         mimetype='text/csv',
-        cache_timeout=0
+        max_age=0
     )
 
 @app.route('/callers/permitted/export', methods=['GET'])
