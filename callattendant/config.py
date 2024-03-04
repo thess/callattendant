@@ -40,7 +40,7 @@ default_config = {
 
     "BLOCK_ENABLED": True,
     "BLOCK_SERVICE": "",
-    "BLOCK_SERVICE_THRESHOLD": 0,
+    "BLOCK_SERVICE_THRESHOLD": 2,
 
     "CALLERID_PATTERNS_FILE": 'cid_patterns.yaml',
 
@@ -224,6 +224,10 @@ class Config(dict):
             success = False
         if self["BLOCK_SERVICE"] not in ("", "NOMOROBO", "SHOULDIANSWER"):
             print("* BLOCK_SERVICE is invalid: {}".format(self["BLOCK_SERVICE"]))
+            success = False
+        if (not isinstance(self["BLOCK_SERVICE_THRESHOLD"], int) or
+                (self["BLOCK_SERVICE_THRESHOLD"] != 1 and self["BLOCK_SERVICE_THRESHOLD"] != 2)):
+            print("* BLOCK_SERVICE_THRESHOLD should be 1 or 2: {}".format(self["BLOCK_SERVICE_THRESHOLD"]))
             success = False
 
         for mode in self["SCREENING_MODE"]:
