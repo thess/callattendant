@@ -319,7 +319,7 @@ class Config(dict):
         # WARNINGS: they print only; they do not fail validation.
         if "ignore" in self[key]:
             if any(a in self[key] for a in ("greeting", "record_message", "voice_mail")):
-                print("* WARNING: {} contains actions in addition to 'ignore'. They not be used.".format(key))
+                print("* WARNING: {} contains actions in addition to 'ignore'. They will not be used.".format(key))
 
         return True
 
