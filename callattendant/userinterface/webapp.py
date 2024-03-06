@@ -272,6 +272,11 @@ def dashboard():
         blocked_calls='{:,}'.format(total_blocked),
         percent_blocked='{0:.0f}%'.format(percent_blocked))
 
+@app.route('/about', methods=['GET'])
+def about():
+    # El-cheapo version number display
+    flash('Call Attendant version: ' + current_app.config.get("MASTER_CONFIG").get("VERSION"))
+    return redirect(request.referrer, code=303)  # Other
 
 @app.route('/calls', methods=['GET'])
 def calls():

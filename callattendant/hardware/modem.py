@@ -90,7 +90,7 @@ TERMINATE_CALL = "ATH"
 # Modem DLE shielded codes - DCE to DTE modem data
 DLE_BYTE_CODE = DLE_CODE.encode()
 
-DCE_ANSWER_TONE = chr(97)         # <DLE>-a
+DCE_ANSWER_TONE = chr(97)          # <DLE>-a
 DCE_BUSY_TONE = chr(98)            # <DLE>-b
 DCE_FAX_CALLING_TONE = chr(99)     # <DLE>-c
 DCE_DIAL_TONE = chr(100)           # <DLE>-d
@@ -99,7 +99,7 @@ DCE_LINE_REVERSAL = chr(108)       # <DLE>-l
 DCE_PHONE_ON_HOOK = chr(104)       # <DLE>-h
 DCE_PHONE_OFF_HOOK = chr(72)       # <DLE>-H
 DCE_PHONE_OFF_HOOK2 = chr(80)      # <DLE>-P (Conexant)
-DCE_PHONE_OFF_HOOK3 = chr(112)      # <DLE>-p (Conexant)
+DCE_PHONE_OFF_HOOK3 = chr(112)     # <DLE>-p (Conexant)
 DCE_QUIET_DETECTED = chr(113)      # <DLE>-q (Conexant)
 DCE_RING = chr(82)                 # <DLE>-R
 DCE_SILENCE_DETECTED = chr(115)    # <DLE>-s
@@ -118,7 +118,8 @@ DTE_CLEAR_TRANSMIT_BUFFER = (chr(16) + chr(24))   # <DLE><CAN>
 CRLF = (chr(13) + chr(10))
 
 TEST_DATA = [
-    b"RING", b"DATE=0801", b"TIME=1801", b"NMBR=8055554567", b"NAME=Test1 - Permitted", b"RING", b"RING", b"RING", b"RING",
+    b"RING", b"DATE=0801", b"TIME=1801", b"NMBR=8055554567", b"NAME=Test1 - Permitted",
+    b"RING", b"RING", b"RING", b"RING",
     b"RING", b"DATE=0802", b"TIME=1802", b"NMBR=5551234567", b"NAME=Test2 - Spammer",
     b"RING", b"DATE=0803", b"TIME=1803", b"NMBR=3605554567", b"NAME=Test3 - Blocked",
     b"RING", b"DATE=0804", b"TIME=1804", b"NMBR=8005554567", b"NAME=V123456789012345",
@@ -516,7 +517,7 @@ class Modem(object):
                         if (idx != -1) and (idx < len(audio_data) - 1):
                             # Found a DLE code, check for specific escapes
                             escaped_code = chr(audio_data[idx + 1])
-                            if escaped_code == DCE_END_VOICE_DATA_TX :
+                            if escaped_code == DCE_END_VOICE_DATA_TX:
                                 # <DLE><ETX> is in the stream
                                 print(">> <DLE><ETX> Char Recieved... Stop recording.")
                                 break
@@ -627,7 +628,9 @@ class Modem(object):
                         continue
                     modem_data += modem_char
                     if debugging and len(modem_data) > 1:
-                        print(">> Keypress Data: {}".format(modem_data))
+                        print(">> Keypress Data: {}".format(
+                              "".join(map(lambda x: '<DLE>' if x == DLE_CODE else
+                                                    '<ETX>' if x == ETX_CODE else x, modem_data))))
 
                     if ((DLE_CODE + DCE_PHONE_OFF_HOOK) in modem_data) or \
                             ((DLE_CODE + DCE_PHONE_OFF_HOOK2) in modem_data) or \

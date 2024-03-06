@@ -153,7 +153,7 @@ BLOCK_SERVICE_THRESHOLD = 2
 # a keypress is required to leave message
 #   BLOCKED_ACTIONS = ("answer", "greeting", "voice_mail")
 #
-BLOCKED_ACTIONS = ("answer", "greeting", "voice_mail")
+BLOCKED_ACTIONS = ("answer", "greeting")
 
 # BLOCKED_GREETING_FILE: The wav file to be played to blocked callers.
 #   Example: "Your number has been blocked."
@@ -167,7 +167,7 @@ BLOCKED_RINGS_BEFORE_ANSWER = 0
 # SCREENED_ACTIONS:  A tuple containing a combination of the following actions:
 #   "ignore" OR a combo of "answer", "greeting", "record_message", "voice_mail".
 # See BLOCKED_ACTIONS for more info.
-SCREENED_ACTIONS = ("answer", "greeting", "record_message")
+SCREENED_ACTIONS = ("answer", "greeting", "voice_mail")
 
 # SCREENED_GREETING_FILE: The wav file to be played to allowed callers.
 #   Example: "I'm sorry, I can't take your call."
@@ -180,7 +180,7 @@ SCREENED_RINGS_BEFORE_ANSWER = 0
 # PERMITTED_ACTIONS:  A tuple containing a combination of the following actions:
 #   "ignore" OR a combo of "answer", "greeting", "record_message", "voice_mail".
 # See BLOCKED_ACTIONS for more info.
-PERMITTED_ACTIONS = ("ignore",)
+PERMITTED_ACTIONS = ("answer", "greeting", "record_message")
 
 # PERMITTED_GREETING_FILE: The wav file to be played to allowed callers.
 #   Example: "I'm sorry, I can't take your call."
@@ -188,7 +188,7 @@ PERMITTED_GREETING_FILE = "general_greeting.wav"
 
 # PERMITTED_RINGS_BEFORE_ANSWER: The number of rings to wait before answering a call.
 #   Example: 4 to allow the callee to pick up the phone before going to voice mail.
-PERMITTED_RINGS_BEFORE_ANSWER = 0
+PERMITTED_RINGS_BEFORE_ANSWER = 4
 
 # VOICE_MAIL_GOODBYE_FILE: The wav file play just before hanging up
 #   Example: "Goodbye"
