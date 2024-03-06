@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="callattendant",   # Add username when uploading to TestPyPI
-    version="1.7.2",        # Ensure this is in-sync with VERSION in config.py
+    version="1.7.3",        # Ensure this is in-sync with VERSION in config.py
     author="Ted Hess",
     author_email="thess@kitschensync.net",
     description="An automated call attendant and call blocker using a USR5637 or CX930xx modem",

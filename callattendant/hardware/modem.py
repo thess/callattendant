@@ -423,7 +423,9 @@ class Modem(object):
                     if self._serial.in_waiting > 1:
                         modem_data = self._serial.read(self._serial.in_waiting).decode("utf-8", "ignore").strip()
                         if debugging:
-                            print(">> play_audio input: {}".format(modem_data))
+                            print(">> play_audio input: {}".format(
+                                  "".join(map(lambda x: '<DLE>' if x == DLE_CODE else
+                                                        '<ETX>' if x == ETX_CODE else x, modem_data))))
                         if modem_data != '':
                             if modem_data[0] == DLE_CODE:
                                 if (modem_data[1] == DCE_PHONE_OFF_HOOK) or \
