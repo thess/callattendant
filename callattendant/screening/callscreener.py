@@ -95,10 +95,10 @@ class CallScreener(object):
                 if self._blockservice is not None:
                     print(">> Checking block service...")
                     result = self._blockservice.lookup_number(number)
+                    reason = "{} with score {}".format(result["reason"], result["score"])
+                    if self.config["DEBUG"]:
+                        print(">>> {}".format(reason))
                     if result["spam"]:
-                        reason = "{} with score {}".format(result["reason"], result["score"])
-                        if self.config["DEBUG"]:
-                            print(">>> {}".format(reason))
                         self.blacklist_caller(callerid, reason)
                         return True, (reason, None)
 
@@ -125,11 +125,13 @@ class CallScreener(object):
 
         bs = config["BLOCK_SERVICE"].upper()
         if bs == "NOMOROBO":
-            # Set blocking threshold to 1 to filter nuisance calls
             self._blockservice = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
+            print("NomoroboService Initialized as CallScreener") if self.config["DEBUG"] else None
         elif bs == "SHOULDIANSWER":
             self._blockservice = ShouldIAnswer(config["BLOCK_SERVICE_THRESHOLD"])
+            print("ShouldIAnswer Initialized as CallScreener") if self.config["DEBUG"] else None
         else:
+            print("No 3rd Party CallScreener Initialized") if self.config["DEBUG"] else None
             self._blockservice = None
 
         # Load number and name patterns into config vars

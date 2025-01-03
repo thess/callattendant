@@ -43,13 +43,25 @@ class NomoroboService(object):
 
         score = 0  # = no spam
 
-        positions = soup.findAll(class_="profile-position")
-        if len(positions) > 0:
-            position = positions[0].get_text()
-            if position.upper().find("DO NOT ANSWER") > -1:
-                score = 2  # = is spam
-            else:
-                score = 1  # = might be spam (caller is "Political", "Charity", or "Debt Collector")
+        prewords = soup.findAll(class_="profile-preword")
+        if len(prewords) > 0:
+            preword = prewords[0].get_text()
+            if preword.upper().find("UNKNOWN") > -1:
+                score = 0
+            elif preword.upper().find("SCAM") > -1:
+                score = 2
+            elif preword.upper().find("ROBOCALL") > -1:
+                # This is a robocaller; look for severity for escalation
+                profile_list = soup.findAll(class_="profile-list")
+                if len(profile_list) > 0:
+                    label = profile_list[0].find(class_="label")
+                    if label:
+                        if label.get_text().upper().find("SEVERE") > -1:
+                            score = 2
+                        else:
+                            score = 1
+                else:
+                    score = 1
 
         reason = ""
         titles = soup.findAll(class_="profile-title")
@@ -58,11 +70,6 @@ class NomoroboService(object):
             # cleanup text and remove excess whitespace
             reason = reason.replace("\n", "").strip(" ")
             reason = re.sub('\\s+', ' ', reason)
-            # TODO: if score == 1, check for "Political", "Charity", and/or "Debt Collector"
-            # in the reason and adjust the score if appropriate
-            if score == 1:
-                if reason.upper().find("UNKNOWN CALLER") > -1:
-                    score = 0
 
         spam = False if score < self.spam_threshold else True
 
