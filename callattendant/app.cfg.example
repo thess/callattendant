@@ -108,8 +108,8 @@ BLOCK_SERVICE = "NOMOROBO"
 # BLOCK_SERVICE_THRESHOLD: The severity level returned by the online service which
 #   is considered spam or nuisance calls. Only values 1 or 2 are accepted.
 # NOMOROBO:
-#   1 = might be spam (caller is "Political", "Charity", or "Debt Collector"),
-#   2 = Spam - marked as "Do Not Answer",
+#   1 = Caller is identified by NOMOROBO as a Robocall.
+#   2 = Spam - marked as a scam, or a robocaller with "Severe" Call Activity
 # SHOULDIANSWER:
 #   1 = (not used - further analysis of the score in "reviews' section warranted)
 #   2 = Spam - marked as "Negative"
