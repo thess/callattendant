@@ -106,8 +106,6 @@ class Whitelist(object):
         """
         query = 'DELETE FROM Whitelist WHERE PhoneNo=:phone_no'
         arguments = {'phone_no': phone_no}
-        self.db.execute(query, arguments)
-        self.db.commit()
         try:
             self.db.execute(query, arguments)
             self.db.commit()
@@ -163,5 +161,3 @@ class Whitelist(object):
         args = (number,)
         results = query_db(self.db, query, args, False)
         return results
-
-
