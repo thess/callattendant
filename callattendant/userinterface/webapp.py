@@ -45,6 +45,7 @@ import sqlite3
 from flask import Flask, request, g, current_app, render_template, redirect, \
     Response, jsonify, flash, send_file
 from flask_paginate import Pagination, get_page_args
+from waitress import serve
 
 from pygments import highlight
 from pygments.lexers import PythonLexer
@@ -1222,9 +1223,8 @@ def run_flask(config):
         log = logging.getLogger('werkzeug')
         log.disabled = True
 
-    print("Running the Flask server")
-    # debug mode prevents app from running in separate thread
-    app.run(host=config['HOST'], port=config['PORT'], debug=False)
+    print("Running the Waitress server")
+    serve(app, host=config['HOST'], port=config['PORT'], threads=6)
 
 
 def start(config):

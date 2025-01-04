@@ -1,4 +1,5 @@
 Flask~=3.0.1
+waitress~=3.0.2
 flask-paginate~=2023.10.24
 requests~=2.31.0
 beautifulsoup4~=4.12.3
