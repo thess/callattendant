@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="callattendant",   # Product name on PyPi (Callattendant2)
-    version="2.0.8",        # Ensure this is in-sync with VERSION in config.py
+    version="2.1.0",        # Ensure this is in-sync with VERSION in config.py
     author="Ted Hess",
     author_email="thess@kitschensync.net",
     description="An automated call attendant and call blocker using a USR5637 or CX930xx modem",
