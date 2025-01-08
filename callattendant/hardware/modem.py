@@ -224,6 +224,18 @@ class Modem(object):
         test_index = 0
         logfile = None
 
+        # validate the caller ID data pattern
+        def cid_validate(val, key, regex):
+            try:
+                if re.match(regex, val):
+                    return True
+                else:
+                    print("Invalid {}: {}".format(key, val))
+            except Exception as e:
+                print("Error in {}: {}".format(key, e))
+            # Return False if the value is not valid
+            return False
+
         # Handle incoming calls
         try:
             # This loop reads incoming data from the serial port and
@@ -250,20 +262,20 @@ class Modem(object):
                 # then look for and handle a partial set of caller info.
                 if (modem_data == '') or (RING in modem_data):
                     # NMBR is required for processing a partial CID
-                    if call_record.get('NMBR'):
+                    if call_record.get(NMBR):
                         now = datetime.now()
-                        if not call_record.get('DATE'):
-                            call_record['DATE'] = now.strftime("%m%d")
-                        if not call_record.get('TIME'):
-                            call_record['TIME'] = now.strftime("%H%M")
-                        if not call_record.get('NAME'):
-                            call_record['NAME'] = "Unknown"
+                        if not call_record.get(DATE):
+                            call_record[DATE] = now.strftime("%m%d")
+                        if not call_record.get(TIME):
+                            call_record[TIME] = now.strftime("%H%M")
+                        if not call_record.get(NAME):
+                            call_record[NAME] = "Unknown"
                     else:
                         # Othewise, throw away any partial data without a number
                         # that was received between RINGs/timeouts.
                         # Note: in UK and other regions that do not supply a NAME,
                         # you could set the default name here, for example:
-                        #   call_record{"NAME": "Unknown"}
+                        #   call_record{NAME: "Unknown"}
                         call_record = {}
 
                 # Process the modem data
@@ -273,33 +285,62 @@ class Modem(object):
                         print(modem_data)
                         self._serial.flush()
 
-                    # Process the modem data
+                    # Ring notification
                     if RING in modem_data:
                         self.ring()
-                    elif DATE in modem_data:
-                        items = modem_data.split('=')
-                        call_record['DATE'] = items[1].strip()
-                    elif TIME in modem_data:
-                        items = modem_data.split('=')
-                        call_record['TIME'] = items[1].strip()
-                    elif NAME in modem_data:
-                        items = modem_data.split('=')
-                        call_record['NAME'] = items[1].strip()
-                    elif NMBR in modem_data:
-                        items = modem_data.split('=')
-                        call_record['NMBR'] = items[1].strip()
+                    else:
+                        """
+                        Validate the modem data and build a call record
+                        Modem data for caller-id may contain the following fields:
+                            DATE = 4..6 digit month and day (MMDD)[YY]
+                            TIME = 4 digit hour and minute (HHMM)
+                            NMBR = 4..17 digit phone number (required)
+                            NAME = [optional] 2..15 letters/spaces. Must start with letter.
+                        """
+                        if DATE in modem_data:
+                            val = modem_data.split('=')[1].strip()
+                            if cid_validate(val, DATE, r"^\d{4,6}$"):
+                                # If the date is only 4 characters long, append the current year (for leap years)
+                                if len(val) == 4:
+                                    val += str(datetime.now().year)
+                                try:
+                                    # Use strptime to validate the date (throws ValueError if invalid)
+                                    datetime.strptime(val, '%m%d%Y')
+                                    call_record[DATE] = val
+                                except ValueError:
+                                    print("Invalid DATE: {}".format(val))
+
+                        elif TIME in modem_data:
+                            val = modem_data.split('=')[1].strip()
+                            if cid_validate(val, TIME, r'^\d{4}$'):
+                                try:
+                                    # Use strptime to validate the time (throws ValueError if invalid)
+                                    datetime.strptime(val, '%H%M')
+                                    call_record[TIME] = val
+                                except ValueError:
+                                    print("Invalid TIME: {}".format(val))
+
+                        elif NAME in modem_data:
+                            val = modem_data.split('=')[1].strip()
+                            if cid_validate(val, NAME, r'^[A-Za-z][A-Za-z ]{1,14}$'):
+                                call_record[NAME] = val
+
+                        elif NMBR in modem_data:
+                            val = modem_data.split('=')[1].strip()
+                            if cid_validate(val, NMBR, r'^\d{4,17}$'):
+                                call_record[NMBR] = val
 
                 # Test for a complete set of caller ID data
                 # https://stackoverflow.com/questions/1285911/how-do-i-check-that-multiple-keys-are-in-a-dict-in-a-single-pass
-                if all(k in call_record for k in ("DATE", "TIME", "NAME", "NMBR")):
+                if all(k in call_record for k in (DATE, TIME, NAME, NMBR)):
                     # Already handled first RING (don't count twice)
                     self.ring_event.clear()
                     # Queue caller for screening
-                    print("> Queueing call {} for processing".format(call_record["NMBR"]))
+                    print("> Queueing call {} for processing".format(call_record[NMBR]))
                     handle_caller(call_record)
                     # Note: in UK and regions that do not supply a NAME,
                     # you could set the default name here, for example:
-                    #   call_record{"NAME": "Unknown"}
+                    #   call_record{NAME: "Unknown"}
                     call_record = {}
 
                 # Yield to other threads

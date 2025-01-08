@@ -4,7 +4,7 @@
 #  setup.py
 #
 #  Copyright 2020 Bruce Schubert <bruce@emxsys.com>
-#  Copyright 2022 Ted Hess <thess@kitschensync.net>
+#  Copyright 2022-2025 Ted Hess <thess@kitschensync.net>
 
 import setuptools
 
@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="callattendant",   # Product name on PyPi (Callattendant2)
-    version="2.0.7",        # Ensure this is in-sync with VERSION in config.py
+    version="2.1.0",        # Ensure this is in-sync with VERSION in config.py
     author="Ted Hess",
     author_email="thess@kitschensync.net",
     description="An automated call attendant and call blocker using a USR5637 or CX930xx modem",
@@ -25,6 +25,7 @@ setuptools.setup(
     include_package_data=True,      # Includes files from MANIFEST.in
     install_requires=[
         "Flask>=3.0.1",
+        "waitress>=3.0.2",
         "flask-paginate>=2023.10.24",
         "beautifulsoup4>=4.12.3",
         "requests>=2.31.0",
