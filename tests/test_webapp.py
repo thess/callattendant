@@ -47,6 +47,11 @@ def myapp():
     app.secret_key = get_random_string()
     with app.app_context():
 
+        dummy_nextcall = type("DummyNextCall", (), {
+            "is_next_call_permitted": lambda self: False,
+            "toggle_next_call_permitted": lambda self: None
+        })()
+
         master_config = {
             "DB_FILE": db_path,
             "PHONE_DISPLAY_FORMAT": "###-###-####",
@@ -54,6 +59,7 @@ def myapp():
         }
 
         app.config['MASTER_CONFIG'] = master_config
+        app.config["NEXTCALL"] = dummy_nextcall
         app.config["TESTING"] = True
         app.config["DEBUG"] = True
 

@@ -29,7 +29,7 @@ import pytest
 from callattendant.screening.calllogger import CallLogger
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def calllogger():
 
     # Create the test db in RAM
@@ -52,7 +52,7 @@ def test_add_caller(calllogger):
     callerid = {
         "NAME": "Bruce",
         "NMBR": "1234567890",
-        "DATE": "1012",
+        "DATE": "10122023",
         "TIME": "0600",
     }
 
