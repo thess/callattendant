@@ -254,7 +254,17 @@ class Modem(object):
                     # FYI: The verbose-form result codes are preceded and terminated by the
                     # sequence <CR><LF>. The numeric-form is also terminated by <CR> but it
                     # has no preceding sequence.
-                    modem_data = self._serial.readline().decode("utf-8", "ignore").strip()
+                    try:
+                        modem_data = self._serial.readline().decode("utf-8", "ignore").strip()
+                    except serial.SerialException as e:
+                        print("Error: Serial port or modem disconnected")
+                        # Close port and mark modem offline for webUI
+                        self.ring_indicator.close()
+                        self._close_serial_port()
+                        self.config["MODEM_ONLINE"] = False
+                        # Exit the thread
+                        break
+
                     self._serial.timeout = save_timeout
 
                 # Some telcos do not supply all the caller info fields.
