@@ -26,7 +26,9 @@ MODEM_DEVICE = ""
 #   See README.md notes regarding caller-id enable for Dell RD02-D400 modems.
 OPTIONAL_MODEM_INIT = ""
 
-# Web UI options: HOST can be set to a specific IP address or "::" to include IPv6
+# Web UI options: HOST can be set to a specific IP address.
+# IPv6 addresses should be enclosed in brackets; Example: "[::]".
+# Use "*" for both IPv4 and IPv6.
 HOST = "0.0.0.0"
 PORT = 5000
 
