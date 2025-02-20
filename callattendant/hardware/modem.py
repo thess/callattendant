@@ -905,7 +905,8 @@ class Modem(object):
 
         # Test if connected to a modem using basic AT command.
         self._serial.reset_input_buffer()
-        if not self._send("AT"):
+        # Force modem to return verbose codes
+        if not self._send("ATV1"):
             return False
 
         # Attempt to identify the modem
