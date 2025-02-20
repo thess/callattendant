@@ -305,7 +305,7 @@ class Modem(object):
                             DATE = 4..6 digit month and day (MMDD)[YY]
                             TIME = 4 digit hour and minute (HHMM)
                             NMBR = 4..17 digit phone number (required)
-                            NAME = [optional] 2..15 letters/spaces. Must start with letter.
+                            NAME = [optional] 2..15 letters, numbers, spaces, dot or comma. Must start with letter.
                         """
                         if DATE in modem_data:
                             val = modem_data.split('=')[1].strip()
@@ -332,7 +332,7 @@ class Modem(object):
 
                         elif NAME in modem_data:
                             val = modem_data.split('=')[1].strip()
-                            if cid_validate(val, NAME, r'^[A-Za-z][A-Za-z ]{1,14}$'):
+                            if cid_validate(val, NAME, r'^[A-Za-z][A-Za-z0-9 .,]{1,14}$'):
                                 call_record[NAME] = val
 
                         elif NMBR in modem_data:
