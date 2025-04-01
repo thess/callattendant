@@ -31,7 +31,9 @@ default_config = {
     "MODEM_DEVICE": "",
     "OPTIONAL_MODEM_INIT": "",
 
+    "ENABLE_CALLERID_VALIDATION": True,
     "DATABASE": "callattendant.db",
+
     "NOTIFICATIONS_FOLDER": "notifications",
     "SCREENING_MODE": ("whitelist", "blacklist"),
 

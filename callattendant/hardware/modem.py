@@ -298,7 +298,7 @@ class Modem(object):
                     # Ring notification
                     if RING in modem_data:
                         self.ring()
-                    else:
+                    elif self.config["ENABLE_CALLERID_VALIDATION"]:
                         """
                         Validate the modem data and build a call record
                         Modem data for caller-id may contain the following fields:
@@ -339,6 +339,16 @@ class Modem(object):
                             val = modem_data.split('=')[1].strip()
                             if cid_validate(val, NMBR, r'^\d{4,17}$'):
                                 call_record[NMBR] = val
+                    else:
+                        # Caller ID validation is disabled
+                        if DATE in modem_data:
+                            call_record[DATE] = modem_data.split('=')[1].strip()
+                        elif TIME in modem_data:
+                            call_record[TIME] = modem_data.split('=')[1].strip()
+                        elif NAME in modem_data:
+                            call_record[NAME] = modem_data.split('=')[1].strip()
+                        elif NMBR in modem_data:
+                            call_record[NMBR] = modem_data.split('=')[1].strip()
 
                 # Test for a complete set of caller ID data
                 # https://stackoverflow.com/questions/1285911/how-do-i-check-that-multiple-keys-are-in-a-dict-in-a-single-pass
@@ -906,7 +916,7 @@ class Modem(object):
         # Test if connected to a modem using basic AT command.
         self._serial.reset_input_buffer()
         # Force modem to return verbose codes
-        if not self._send("ATV1"):
+        if not self._send(ENABLE_VERBOSE_CODES):
             return False
 
         # Attempt to identify the modem
