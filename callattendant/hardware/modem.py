@@ -334,11 +334,15 @@ class Modem(object):
                             val = modem_data.split('=')[1].strip()
                             if cid_validate(val, NAME, r'^[A-Za-z][A-Za-z0-9 .,]{1,14}$'):
                                 call_record[NAME] = val
+                            else:
+                                call_record[NAME] = "Private/Unknown"
 
                         elif NMBR in modem_data:
                             val = modem_data.split('=')[1].strip()
                             if cid_validate(val, NMBR, r'^\d{4,17}$'):
                                 call_record[NMBR] = val
+                            else:
+                                call_record[NMBR] = "0000000000"
                     else:
                         # Caller ID validation is disabled
                         if DATE in modem_data:
