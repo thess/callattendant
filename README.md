@@ -158,14 +158,18 @@ Install and update using `pip` or from source:
 
 $ sudo apt install libxml2-dev libxslt-dev
 
-# Option 1: Using pip
+# Option 1: Using pip (from PyPi.org)
 $ source venv/bin/activate
-$ pip3 install "callattendant@git+https://github.com/thess/callattendant"
+$ pip3 install callattendant
 
 # Option 2: From source (download source tarball from github or clone repository)
 $ cd <download directory>
 $ source <virtualenv-location>/venv/bin/activate
 $ python3 setup.py install
+
+# Option 3: Using pip (latest from github.com)
+$ source venv/bin/activate
+$ pip3 install "callattendant@git+https://github.com/thess/callattendant"
 
 ```
 ---
