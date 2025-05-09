@@ -98,3 +98,14 @@ Pagination info numbers in above
     padding: .1em .25em;
     font-size: 125%;
 }
+
+.calls-selector {
+    margin-left: 20px;
+    width: 15px;
+    height: 15px;"
+}
+
+label {
+    margin-left: 5px;
+    font-size: 16px;
+}

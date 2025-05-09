@@ -10,6 +10,20 @@
       <img class="float-right" src="../static/info-circle.svg" alt="" width="32" height="32">
     </a>
   </h2>
+  <form action="/calls" method="post">
+    <div class="mb-2">
+      <strong>Show&#58</strong>
+      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+             name="Blocked" id="blocked" value="yes" {{ "checked" if "Blocked" in selected_options else "" }}>
+      <label for="blocked">Blocked</label>
+      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+             name="Permitted" id="permitted" value="yes" {{ "checked" if "Permitted" in selected_options else "" }}>
+      <label for="permitted">Permitted</label>
+      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+             name="Screened" id="screened" value="yes" {{ "checked" if "Screened" in selected_options else "" }}>
+      <label for="screened">Screened</label>
+    </div>
+  </form>
   {% if search_criteria %}
       <strong>Search: {{ search_criteria }}&nbsp;&nbsp;</strong>
       <button id="cancel-search" type="button" class="btn btn-secondary btn-sm" aria-label="Cancel">Cancel</button>

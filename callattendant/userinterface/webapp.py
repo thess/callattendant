@@ -289,24 +289,38 @@ def about():
     flash('Call Attendant version: ' + current_app.config["MASTER_CONFIG"]["VERSION"])
     return redirect(request.referrer, code=303)  # Other
 
-@app.route('/calls', methods=['GET'])
+@app.route('/calls', methods=['GET', 'POST'])
 def calls():
     """
     Display the call history from the call log table.
     """
 
+    search_criteria = ""
+    selected_options = None
+    if request.method == 'POST':
+        # Post requests re-draw with the new search criteria (Permitted, Blocked, etc.)
+        selected_options = request.form
+        if selected_options:
+            # Create a string of the selected options
+            selected_options = ','.join(selected_options)
+            # Create a SQL IN clause for the selected options
+            selected_options = "'" + selected_options.replace(",", "', '") + "'"
+            search_criteria = "WHERE Action IN ({})".format(selected_options)
+
     # Get GET request args, if available
     search_text = request.args.get('search')
     search_type = request.args.get('submit')
 
-    # Get search criteria, if applicable
-    search_criteria = ""
+    # Refine search criteria, if applicable
     if search_text:
+        if search_criteria:
+            # If we already have a search criteria, append to it
+            search_criteria += " AND "
         if search_type == "phone":
             number = transform_number(search_text)  # override GET arg if we're searching
-            search_criteria = "WHERE Number='{}'".format(number)
+            search_criteria += "WHERE Number='{}'".format(number)
         else:
-            search_criteria = "WHERE Caller LIKE '%{}%'".format(search_text)
+            search_criteria += "WHERE Caller LIKE '%{}%'".format(search_text)
 
     # Get values used for pagination of the call log
     sql = """SELECT COUNT(*), Number,
@@ -400,6 +414,7 @@ def calls():
         active_nav_item='calls',
         calls=calls,
         search_criteria=search_criteria,
+        selected_options=selected_options if selected_options else "'Permitted','Blocked','Screened'",
         page=page,
         per_page=per_page,
         pagination=pagination)
