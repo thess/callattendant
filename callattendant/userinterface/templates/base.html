@@ -10,6 +10,20 @@
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link rel="stylesheet" href="{{ url_for('static',filename='css/callattendant.css') }}">
+  {% macro search_box() %}
+    <input class="form-control mx-sm-3" type="search" name="search-text" id="input-search" placeholder="Phone number" aria-label="Search">
+    <div class="btn-group">
+      <button type="submit" class="btn btn-success my-2 my-sm-0" id="btn-search" name="search-type" value="phone-number">Search</button>
+      <button type="button" class="btn btn-success my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+        <span class="caret"></span>
+      </button>
+      <div class="dropdown-menu">
+        <div class="dropdown-header">SEARCH TYPE</div>
+        <a class="dropdown-item" id="menu-phone" href="#">Phone Search</a>
+        <a class="dropdown-item" id="menu-name" href="#">Name Search</a>
+      </div>
+    </div>
+  {% endmacro %}
   {% block stylesheet %}
   {% endblock %}
 </head>
@@ -49,21 +63,11 @@
           </li>
         </ul>
 
-
-        <form class="form-inline my-2 my-lg-0" action="/calls" method="get">
-          <input class="form-control mr-sm-2" type="search" name="search" id="input-search" placeholder="Phone number" aria-label="Search">
-          <div class="btn-group">
-            <button type="submit" class="btn btn-success my-2 my-sm-0" id="btn-search" name="submit" value="phone">Search</button>
-            <button type="button" class="btn btn-success my-2 my-sm-0 dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-              <span class="caret"></span>
-            </button>
-            <div class="dropdown-menu">
-              <div class="dropdown-header">SEARCH TYPE</div>
-              <a class="dropdown-item" id="menu-phone" href="#">Phone Search</a>
-              <a class="dropdown-item" id="menu-name" href="#">Name Search</a>
-            </div>
-          </div>
+        {% if active_nav_item == "dashboard" %}
+        <form class="form-inline my-2 my-lg-0" action="/calls" method="post">
+          {{ search_box() }}
         </form>
+        {% endif %}
         <ul class="navbar-nav mr-2">
           <li class="nav-item" id="settings">
             <a class="nav-link" href="/settings">

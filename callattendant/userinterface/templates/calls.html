@@ -10,23 +10,26 @@
       <img class="float-right" src="../static/info-circle.svg" alt="" width="32" height="32">
     </a>
   </h2>
-  <form action="/calls" method="post">
-    <div class="mb-2">
+  <form class="form-inline" action="/calls" method="post">
+    <div class="form-check form-check-inline">
       <strong>Show&#58</strong>
-      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+      <input type="checkbox" class="form-check-input action-select"
              name="Blocked" id="blocked" value="yes" {{ "checked" if "Blocked" in selected_options else "" }}>
-      <label for="blocked">Blocked</label>
-      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+      <label class="form-check-label" for="blocked">Blocked</label>
+      <input type="checkbox" class="form-check-input action-select"
              name="Permitted" id="permitted" value="yes" {{ "checked" if "Permitted" in selected_options else "" }}>
-      <label for="permitted">Permitted</label>
-      <input type="checkbox" class="calls-selector" onChange="this.form.submit()"
+      <label class="form-check-label" for="permitted">Permitted</label>
+      <input type="checkbox" class="form-check-input action-select"
              name="Screened" id="screened" value="yes" {{ "checked" if "Screened" in selected_options else "" }}>
-      <label for="screened">Screened</label>
+      <label class="form-check-label" for="screened">Screened</label>
     </div>
+    {{ search_box() }}
   </form>
   {% if search_criteria %}
-      <strong>Search: {{ search_criteria }}&nbsp;&nbsp;</strong>
+    <div class="mt-sm-2">
+      <span>Search: {{ search_criteria }}&nbsp;&nbsp;</span>
       <button id="cancel-search" type="button" class="btn btn-secondary btn-sm" aria-label="Cancel">Cancel</button>
+    </div>
   {% endif %}
   {% if not calls %}
   <p><strong><i>Results: None</i></strong></p>

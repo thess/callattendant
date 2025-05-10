@@ -12,7 +12,11 @@
   <div>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add New</button>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importModal">Import Numbers</button>
-    <button type="button" class="btn btn-primary" onclick="location.href='/callers/blocked/export'">Export Numbers</button>  </div>
+    <button type="button" class="btn btn-primary" onclick="location.href='/callers/blocked/export'">Export Numbers</button>
+    <form class="float-right form-inline" action="/callers/blocked" method="post">
+      {{ search_box() }}
+    </form>
+  </div>
   <br/>
   <div class="mb-2">
     {% if blacklist %}

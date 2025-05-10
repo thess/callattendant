@@ -296,31 +296,36 @@ def calls():
     """
 
     search_criteria = ""
+    search_text = ""
+    search_type = ""
     selected_options = None
     if request.method == 'POST':
         # Post requests re-draw with the new search criteria (Permitted, Blocked, etc.)
-        selected_options = request.form
+        selected_options = request.form.to_dict()
         if selected_options:
-            # Create a string of the selected options
-            selected_options = ','.join(selected_options)
-            # Create a SQL IN clause for the selected options
-            selected_options = "'" + selected_options.replace(",", "', '") + "'"
-            search_criteria = "WHERE Action IN ({})".format(selected_options)
-
-    # Get GET request args, if available
-    search_text = request.args.get('search')
-    search_type = request.args.get('submit')
+            # Remove search text and type from the selected options
+            search_text = selected_options.get('search-text')
+            del selected_options['search-text']
+            search_type = selected_options.get('search-type')
+            del selected_options['search-type']
+            # Create a string of the selected filter options if any
+            if len(selected_options) != 0:
+                selected_options = ','.join(selected_options)
+                # Create a SQL IN clause for the selected options
+                selected_options = "'" + selected_options.replace(",", "', '") + "'"
+                search_criteria = "WHERE Action IN ({})".format(selected_options)
 
     # Refine search criteria, if applicable
     if search_text:
         if search_criteria:
             # If we already have a search criteria, append to it
             search_criteria += " AND "
-        if search_type == "phone":
-            number = transform_number(search_text)  # override GET arg if we're searching
-            search_criteria += "WHERE Number='{}'".format(number)
         else:
-            search_criteria += "WHERE Caller LIKE '%{}%'".format(search_text)
+            search_criteria = "WHERE "
+        if search_type == "phone-number":
+            search_criteria += "Number LIKE '%{}%'".format(transform_number(search_text))
+        else:
+            search_criteria += "Caller LIKE '%{}%'".format(search_text)
 
     # Get values used for pagination of the call log
     sql = """SELECT COUNT(*), Number,
@@ -584,19 +589,32 @@ def callers_manage(call_no):
         post_count=post_count)
 
 
-@app.route('/callers/blocked')
+@app.route('/callers/blocked', methods=['GET', 'POST'])
 def callers_blocked():
     """
     Display the blocked numbers from the blacklist table
     """
+    search_text=""
+    search_type=""
+    search_criteria=""
+    if request.method == 'POST':
+        # Post requests re-draw with the new search criteria (Permitted, Blocked, etc.)
+        search_text = request.form.get('search-text')
+        search_type = request.form.get('search-type')
+        if search_text:
+            if search_type == "phone-number":
+                search_criteria = "WHERE PhoneNo LIKE '%{}%'".format(transform_number(search_text))
+            else:
+                search_criteria = "WHERE Name LIKE '%{}%'".format(search_text)
+
     # Get values used for pagination of the blacklist
-    total = get_row_count('Blacklist')
+    total = get_row_count('Blacklist', search_criteria)
     page, per_page, offset = get_page_args(
         page_parameter="page", per_page_parameter="per_page"
     )
 
     # Get the blacklist subset, limited to the pagination settings
-    sql = 'SELECT * FROM Blacklist ORDER BY PhoneNo ASC LIMIT {}, {}'.format(offset, per_page)
+    sql = 'SELECT * FROM Blacklist {} ORDER BY PhoneNo ASC LIMIT {}, {}'.format(search_criteria, offset, per_page)
     g.cur.execute(sql)
     result_set = g.cur.fetchall()
     records = []
@@ -693,18 +711,32 @@ def callers_blocked_import():
 
     return redirect("/callers/blocked", code=303)
 
-@app.route('/callers/permitted')
+@app.route('/callers/permitted', methods=['GET', 'POST'])
 def callers_permitted():
     """
     Display the permitted numbers from the whitelist table
     """
     # Get values used for pagination of the blacklist
-    total = get_row_count('Whitelist')
+
+    search_text=""
+    search_type=""
+    search_criteria=""
+    if request.method == 'POST':
+        # Post requests re-draw with the new search criteria (Permitted, Blocked, etc.)
+        search_text = request.form.get('search-text')
+        search_type = request.form.get('search-type')
+        if search_text:
+            if search_type == "phone-number":
+                search_criteria = "WHERE PhoneNo LIKE '%{}%'".format(transform_number(search_text))
+            else:
+                search_criteria = "WHERE Name LIKE '%{}%'".format(search_text)
+
+    total = get_row_count('Whitelist', search_criteria)
     page, per_page, offset = get_page_args(
         page_parameter="page", per_page_parameter="per_page"
     )
     # Get the whitelist subset, limited to the pagination settings
-    sql = 'SELECT * FROM Whitelist ORDER BY Name ASC LIMIT {}, {}'.format(offset, per_page)
+    sql = "SELECT * FROM Whitelist {} ORDER BY Name ASC LIMIT {}, {}".format(search_criteria, offset, per_page)
     g.cur.execute(sql)
     result_set = g.cur.fetchall()
     # Build a list of formatted dict items
@@ -1173,12 +1205,12 @@ def close_db(e=None):
         db.close()
 
 
-def get_row_count(table_name):
+def get_row_count(table_name, search_criteria=""):
     '''
     Returns the row count for the given table
     '''
     # Using the current request's db connection
-    sql = 'select count(*) from {}'.format(table_name)
+    sql = 'select count(*) from {} {}'.format(table_name, search_criteria)
     g.cur.execute(sql)
     total = g.cur.fetchone()[0]
     return total

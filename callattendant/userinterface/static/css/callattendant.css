@@ -99,13 +99,13 @@ Pagination info numbers in above
     font-size: 125%;
 }
 
-.calls-selector {
+.action-select.form-check-input {
     margin-left: 20px;
     width: 15px;
     height: 15px;"
 }
 
-label {
+.form-check-label {
     margin-left: 5px;
     font-size: 16px;
 }
