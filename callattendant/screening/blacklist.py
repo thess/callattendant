@@ -73,7 +73,7 @@ class Blacklist(object):
     def add_caller(self, callerid, reason=""):
         """
         Add a caller to the blocked list.
-            :param caller: a dict with caller ID information
+            :param callerid: a dict with caller ID information
             :param reason: an optional string indicating the
                 reason this caller was added
             :return: True if successful

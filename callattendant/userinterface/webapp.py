@@ -3,6 +3,7 @@
 #
 #  webapp.py
 #
+#  Copyright 2025 Ted Hess <thess@kitschencync.net>
 #  Copyright 2018 Bruce Schubert  <bruce@emxsys.com>
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -267,7 +268,8 @@ def dashboard():
     permit_next = app.config["NEXTCALL"].is_next_call_permitted()
 
     if not current_app.config["MASTER_CONFIG"].get("MODEM_ONLINE", True):
-        flash('The modem is not online. Calls will not be screened or blocked. Check the logs and restart the CallAttendant.')
+        flash('The modem is not online. Calls will not be screened or blocked.'
+              ' Check the logs and restart the CallAttendant.')
 
     # Render the resullts
     return render_template(
@@ -278,7 +280,7 @@ def dashboard():
         top_blocked=top_blocked,
         calls_per_day=calls_per_day,
         new_messages=new_messages,
-        permit_next = permit_next,
+        permit_next=permit_next,
         total_calls='{:,}'.format(total_calls),
         blocked_calls='{:,}'.format(total_blocked),
         percent_blocked='{0:.0f}%'.format(percent_blocked))
@@ -510,9 +512,7 @@ def callers_manage(call_no):
     if request.method == 'POST':
         number = transform_number(request.form['phone_no'])
         if request.form['action'] == 'add-permit':
-            caller = {}
-            caller['NMBR'] = number
-            caller['NAME'] = request.form['name']
+            caller = {'NMBR': number, 'NAME': request.form['name']}
             print(" >> Adding " + caller['NAME'] + " to whitelist")
             whitelist = Whitelist(get_db(), current_app.config)
             whitelist.add_caller(caller, request.form['reason'])
@@ -523,9 +523,7 @@ def callers_manage(call_no):
             whitelist.remove_number(number)
 
         elif request.form['action'] == 'add-block':
-            caller = {}
-            caller['NMBR'] = number
-            caller['NAME'] = request.form['name']
+            caller = {'NMBR': number, 'NAME': request.form['name']}
             print(" >> Adding " + caller['NAME'] + " to blacklist")
             blacklist = Blacklist(get_db(), current_app.config)
             blacklist.add_caller(caller, request.form['reason'])
