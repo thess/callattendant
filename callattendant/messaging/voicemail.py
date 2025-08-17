@@ -165,7 +165,7 @@ class VoiceMail:
         filepath = os.path.join(path, "{}_{}_{}_{}.wav".format(
             call_no,
             caller["NMBR"],
-            caller["NAME"].replace('_', '-'),
+            caller["NAME"].replace('_', '-').replace('/', '-'),
             time.strftime("%m%d%y_%H%M")))
 
         # Play instructions to caller
