@@ -22,51 +22,67 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
-
+from pathlib import Path
 from pprint import pprint
+from unittest.mock import patch
 
+import requests
 
 from callattendant.screening.nomorobo import NomoroboService
 
-def test_5622862616_should_score_1():
-    nomorobo = NomoroboService(2)
+@patch.object(NomoroboService, "http_get")
+def test_5622862616_should_score_1(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_5622862616.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
     result = nomorobo.lookup_number("5622862616")
     pprint(result)
     assert result["score"] == 1
 
-def test_8886727156_should_be_spam():
-    nomorobo = NomoroboService(2)
-    result = nomorobo.lookup_number("3025566080")
+@patch.object(NomoroboService, "http_get")
+def test_8886727156_should_be_spam(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_8886727156.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
+    result = nomorobo.lookup_number("8886727156")
     pprint(result)
     assert result["spam"] is True
 
-def test_8886727156_should_score_2():
-    nomorobo = NomoroboService(2)
-    result = nomorobo.lookup_number("3025566080")
+@patch.object(NomoroboService, "http_get")
+def test_8886727156_should_score_2(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_8886727156.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
+    result = nomorobo.lookup_number("8886727156")
     pprint(result)
     assert result["score"] == 2
 
 
-def test_404_not_marked_as_spam():
-    nomorobo = NomoroboService(2)
+@patch.object(NomoroboService, "http_get")
+def test_404_not_marked_as_spam(mock_get):
+    mock_get.side_effect = requests.exceptions.HTTPError()
+    nomorobo = NomoroboService()
     result = nomorobo.lookup_number("1234567890")
     pprint(result)
     assert result["spam"] is False
 
-def test_9725551356_is_unknown():
-    nomorobo = NomoroboService(2)
+@patch.object(NomoroboService, "http_get")
+def test_9725551356_is_unknown(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_9725551356.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
     result = nomorobo.lookup_number("9725551356")
     pprint(result)
     assert result["score"] == 0
 
-def test_9725551356_is_not_spam():
-    nomorobo = NomoroboService(2)
+@patch.object(NomoroboService, "http_get")
+def test_9725551356_is_not_spam(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_9725551356.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
     result = nomorobo.lookup_number("9725551356")
     pprint(result)
     assert result["spam"] is False
 
-def test_8554188397_should_score_2():
-    nomorobo = NomoroboService(2)
+@patch.object(NomoroboService, "http_get")
+def test_8554188397_should_score_2(mock_get):
+    mock_get.return_value = Path("./nomorobo_content/nomorobo_8554188397.html").read_text(encoding="utf-8")
+    nomorobo = NomoroboService()
     result = nomorobo.lookup_number("8554188397")
     pprint(result)
     assert result["score"] == 2

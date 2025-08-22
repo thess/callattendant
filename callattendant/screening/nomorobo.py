@@ -23,10 +23,8 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
-
 import requests
 from bs4 import BeautifulSoup
-import re
 
 
 class NomoroboService(object):
@@ -42,34 +40,31 @@ class NomoroboService(object):
             return {"spam": False, "score": 0, "reason": "Lookup failed"}
 
         score = 0  # = no spam
+        reason = ""
 
-        prewords = soup.findAll(class_="profile-preword")
-        if len(prewords) > 0:
-            preword = prewords[0].get_text()
-            if preword.upper().find("UNKNOWN") > -1:
-                score = 0
-            elif preword.upper().find("SCAM") > -1:
+        divs = soup.findAll(class_="column_attr")
+        for text in divs:
+            if text.get_text().upper().find("SCAM") > -1:
+                reason = text.get_text().strip()
                 score = 2
-            elif preword.upper().find("ROBOCALL") > -1:
+                break
+            if text.get_text().upper().find("UNKNOWN") > -1:
+                reason = text.get_text().strip()
+                score = 0
+                break
+            if text.get_text().upper().find("ROBOCALL") > -1:
+                reason = text.get_text().strip()
                 # This is a robocaller; look for severity for escalation
-                profile_list = soup.findAll(class_="profile-list")
-                if len(profile_list) > 0:
-                    label = profile_list[0].find(class_="label")
-                    if label:
-                        if label.get_text().upper().find("SEVERE") > -1:
-                            score = 2
-                        else:
-                            score = 1
+                severity = soup.findAll(class_="button_severe")
+                if len(severity) > 0:
+                    label = severity[0].getText().upper()
+                    if label.find("SEVERE") > -1 or label.find("HIGH") > -1 or label.find("ELEVATED") > -1:
+                        score = 2
+                    else:
+                        score = 1
                 else:
                     score = 1
-
-        reason = ""
-        titles = soup.findAll(class_="profile-title")
-        if len(titles) > 0:
-            reason = titles[0].get_text()
-            # cleanup text and remove excess whitespace
-            reason = reason.replace("\n", "").strip(" ")
-            reason = re.sub('\\s+', ' ', reason)
+                break
 
         spam = False if score < self.spam_threshold else True
 
