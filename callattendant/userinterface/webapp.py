@@ -1074,11 +1074,14 @@ def settings():
     config['EMAIL_SERVER_PASSWORD'] = "********"
     saved_mqtt_password = config['MQTT_PASSWORD']
     config['MQTT_PASSWORD'] = "********"
+    saved_nomorobo_password = config['NOMOROBO_PASSWORD']
+    config['NOMOROBO_PASSWORD'] = "********"
     # Read the current config into a str for display
     config_contents = pformat(config)
     # Restore the passwords
     config['EMAIL_SERVER_PASSWORD'] = saved_email_password
     config['MQTT_PASSWORD'] = saved_mqtt_password
+    config['NOMOROBO_PASSWORD'] = saved_nomorobo_password
 
     # Read the config file contents into a buffer for display
     file_contents = ""
@@ -1093,6 +1096,8 @@ def settings():
     file_contents = re.sub(r"(^EMAIL_SERVER_PASSWORD\s*=\s*[\"'])(.*)([\"'])", r"\1********\3",
                            file_contents, flags=re.M)
     file_contents = re.sub(r"(^MQTT_PASSWORD\s*=\s*[\"'])(.*)([\"'])", r"\1********\3",
+                           file_contents, flags=re.M)
+    file_contents = re.sub(r"(^NOMOROBO_PASSWORD\s*=\s*[\"'])(.*)([\"'])", r"\1********\3",
                            file_contents, flags=re.M)
 
     # Convert the strings to pretty HTML

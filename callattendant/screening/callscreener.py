@@ -125,7 +125,8 @@ class CallScreener(object):
 
         bs = config["BLOCK_SERVICE"].upper()
         if bs == "NOMOROBO":
-            self._blockservice = NomoroboService(config["BLOCK_SERVICE_THRESHOLD"])
+            self._blockservice = NomoroboService(config['NOMOROBO_USERNAME'], config['NOMOROBO_PASSWORD'],
+                                                config["BLOCK_SERVICE_THRESHOLD"])
             print("NomoroboService Initialized as CallScreener") if self.config["DEBUG"] else None
         elif bs == "SHOULDIANSWER":
             self._blockservice = ShouldIAnswer(config["BLOCK_SERVICE_THRESHOLD"])
