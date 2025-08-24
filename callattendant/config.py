@@ -20,7 +20,7 @@ from werkzeug.utils import import_string
 # and screened callers through to the home phone.
 #
 default_config = {
-    "VERSION": '2.2.1',
+    "VERSION": '2.3.0',
 
     "DEBUG": False,
     "TESTING": False,
@@ -42,6 +42,9 @@ default_config = {
 
     "BLOCK_ENABLED": True,
     "BLOCK_SERVICE": "",
+    "NOMOROBO_USERNAME": "",
+    "NOMOROBO_PASSWORD": "",
+
     "BLOCK_SERVICE_THRESHOLD": 2,
 
     "CALLERID_PATTERNS_FILE": 'cid_patterns.yaml',
@@ -229,6 +232,13 @@ class Config(dict):
         if self["BLOCK_SERVICE"] not in ("", "NOMOROBO", "SHOULDIANSWER"):
             print("* BLOCK_SERVICE is invalid: {}".format(self["BLOCK_SERVICE"]))
             success = False
+        if self["BLOCK_SERVICE"] == "NOMOROBO":
+            if "NOMOROBO_USERNAME" not in self or len(self["NOMOROBO_USERNAME"]) == 0:
+                print("* NOMOROBO_USERNAME is required for NOMOROBO BLOCK_SERVICE")
+                success = False
+            if "NOMOROBO_PASSWORD" not in self or len(self["NOMOROBO_PASSWORD"]) == 0:
+                print("* NOMOROBO_PASSWORD is required for NOMOROBO BLOCK_SERVICE")
+                success = False
         if (not isinstance(self["BLOCK_SERVICE_THRESHOLD"], int) or
                 (self["BLOCK_SERVICE_THRESHOLD"] != 1 and self["BLOCK_SERVICE_THRESHOLD"] != 2)):
             print("* BLOCK_SERVICE_THRESHOLD should be 1 or 2: {}".format(self["BLOCK_SERVICE_THRESHOLD"]))
@@ -350,7 +360,7 @@ class Config(dict):
         keys = sorted(self.keys())
         for key in keys:
             # Hide sensitive values
-            if (key == "EMAIL_SERVER_PASSWORD") | (key == "MQTT_PASSWORD"):
+            if (key == "EMAIL_SERVER_PASSWORD") | (key == "MQTT_PASSWORD") | (key == "NOMOROBO_PASSWORD"):
                 print("  {} = {}".format(key, "********"))
             else:
                 print("  {} = {}".format(key, self[key]))
