@@ -81,7 +81,7 @@ class NomoroboService(object):
                         # This is a robocaller; look for severity for escalation
                         severity = soup.find_all(class_="button_severe")
                         if len(severity) > 0:
-                            label = severity[0].getText().upper()
+                            label = severity[0].get_text().upper()
                             if label.find("SEVERE") > -1 or label.find("HIGH") > -1 or label.find("ELEVATED") > -1:
                                 score = 2
                             else:
