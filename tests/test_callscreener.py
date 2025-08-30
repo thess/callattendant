@@ -29,7 +29,6 @@ import pytest
 from callattendant.config import Config
 from callattendant.screening.callscreener import CallScreener
 
-
 # Create a blocked caller
 caller1 = {"NAME": "CALLER1", "NMBR": "1234567890", "DATE": "1012", "TIME": "0600"}
 # Create a permitted caller
@@ -44,11 +43,12 @@ caller5 = {"NAME": "CALLER5", "NMBR": "P", "DATE": "1012", "TIME": "0600"}
 caller6 = {"NAME": "JOHN DOE", "NMBR": "0987654321", "DATE": "1012", "TIME": "0600"}
 # Create a unique number (permitted number pattern match)
 caller7 = {"NAME": "CALLER7", "NMBR": "09876543210", "DATE": "1012", "TIME": "0600"}
+# ShouldIAnswer Spam
+caller8 = {"NAME": "CALLER8", "NMBR": "8554188397", "DATE": "1012", "TIME": "0600"}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def screener():
-
     # Create the test db in RAM
     db = sqlite3.connect(":memory:")
 
@@ -56,24 +56,22 @@ def screener():
     config = Config()
     config['DEBUG'] = True
     config['TESTING'] = True
-    config['BLOCK_NAME_PATTERNS'] = {
-        "V[0-9]{15}": "Telemarketer Caller ID",
-    }
-    config['BLOCK_NUMBER_PATTERNS'] = {
-        "P": "Private number",
-    }
-    config['PERMIT_NAME_PATTERNS'] = {
-        ".*DOE": "Anyone",
-    }
-    config['PERMIT_NUMBER_PATTERNS'] = {
-        "987654": "Anyone",
-    }
+
+    config['BLOCK_SERVICE_THRESHOLD'] = 1
+    config['BLOCK_SERVICE'] = "NOMOROBO"
     # Create the blacklist to be tested
     screener = CallScreener(db, config)
+
+    screener.config['CALLERID_PATTERNS'] = {
+        'blocknames': {'V[0-9]{15}': "Telemarketer Caller ID"},
+        'blocknumbers': {'P': "Private Number"},
+        'permitnames': {'.*DOE': "Anyone"},
+        'permitnumbers': {'987654': "Anyone"}
+    }
     # Add a record to the blacklist
-    screener._blacklist.add_caller(caller1)
+    screener.blacklist_caller(caller1, "Test Blacklist")
     # Add a record to the whitelist
-    screener._whitelist.add_caller(caller2)
+    screener.whitelist_caller(caller2, "Test Whitelist")
 
     return screener
 
@@ -104,8 +102,15 @@ def test_blocked_name_pattern(screener):
 
 
 def test_is_blacklisted_by_nomorobo(screener):
+    screener.config['BLOCK_SERVICE'] = "NOMOROBO"
     is_blacklisted, reason = screener.is_blacklisted(caller4)
     assert is_blacklisted, "caller4 should be blocked by nomorobo"
+
+
+def test_is_blacklisted_by_shouldianswer(screener):
+    screener.config['BLOCK_SERVICE'] = "SHOULDIANSWER"
+    is_blacklisted, reason = screener.is_blacklisted(caller8)
+    assert is_blacklisted, "caller8 should be blocked by nomorobo"
 
 
 def test_blocked_number_pattern(screener):

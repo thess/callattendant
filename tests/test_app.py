@@ -58,11 +58,13 @@ def app(mocker):
     config["SCREENED_ACTIONS"] = ("answer", "greeting", "record_message")
     config["SCREENED_RINGS_BEFORE_ANSWER"] = 0
     config["PERMITTED_ACTIONS"] = ("ignore",)
-    config["PERMITTED_RINGS_BEFORE_ANSWER"] = 4
+    config["PERMITTED_RINGS_BEFORE_ANSWER"] = 0
+    config["SREENING_MODE"] = ("whitelist", "blacklist")
 
     # Mock the hardware interfaces
     mocker.patch("hardware.modem.Modem._open_serial_port", return_value=True)
     mocker.patch("hardware.modem.Modem.start", return_value=True)
+    mocker.patch("hardware.modem.Modem.stop", return_value=True)
     mocker.patch("hardware.modem.Modem.pick_up", return_value=True)
     mocker.patch("hardware.modem.Modem.hang_up", return_value=True)
     mocker.patch("hardware.modem.Modem.play_audio", return_value=True)
@@ -84,6 +86,9 @@ def app(mocker):
     mocker.patch("hardware.indicators.RingIndicator.__init__", return_value=None)
     mocker.patch("hardware.indicators.RingIndicator.blink")
     mocker.patch("hardware.indicators.RingIndicator.close")
+
+    # Mock signal.signal to avoid errors in test threads
+    mocker.patch("signal.signal", return_value=None)
 
     def mock_is_whitelisted(caller):
         if caller["NAME"] in ["CALLER1", "CALLER3"]:
@@ -175,12 +180,12 @@ def test_ignore_permitted(app):
     ignore_call_called = False
 
     app.handle_caller(caller1)   # Queue a permitted caller with 4 rings
-    time.sleep(15)
+    time.sleep(2)
 
     assert ignore_call_called
 
     # Stop the run thread
-    app._stop_event.set()
+    app.set_stop_flag()
 
 
 def test_answer_blocked(app):
@@ -199,7 +204,7 @@ def test_answer_blocked(app):
     assert answer_call_called
 
     # Stop the run thread
-    app._stop_event.set()
+    app.set_stop_flag()
 
 
 def test_answer_screened(app):
@@ -218,7 +223,7 @@ def test_answer_screened(app):
     assert answer_call_called
 
     # Stop the run thread
-    app._stop_event.set()
+    app.set_stop_flag()
 
 
 def test_queued_call(app):
@@ -245,7 +250,7 @@ def test_queued_call(app):
     assert answer_call_called
 
     # Stop the run thread
-    app._stop_event.set()
+    app.set_stop_flag()
 
 
 def test_answer_call_no_actions(app, mocker):
