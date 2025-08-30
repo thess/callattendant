@@ -115,9 +115,10 @@ PERMIT_NEXT_CALL_FLAG = 'permitnextcall.flag'
 #
 #   Example: "NOMOROBO", SHOULDIANSWER, or "" (disabled).
 BLOCK_SERVICE = ""
-# NOMOROBO_USER and NOMOROBO_PASS: Your Nomorobo account credentials.
+# NOMOROBO_USERNAME and NOMOROBO_PASSWORD: Your Nomorobo account credentials.
 NOMOROBO_USERNAME = ""
 NOMOROBO_PASSWORD = ""
+
 # BLOCK_SERVICE_THRESHOLD: The severity level returned by the online service which
 #   is considered spam or nuisance calls. Only values 1 or 2 are accepted.
 # NOMOROBO:
