@@ -1,0 +1,75 @@
+# pyproject.toml
+#
+#  Copyright 2020 Bruce Schubert <bruce@emxsys.com> (deceased)
+#  Copyright 2022-2026 Ted Hess <thess@kitschensync.net>
+
+[project]
+name = "callattendant"
+version = "2.3.1"
+license = "MIT"
+authors = [{name = "Ted Hess", email = "thess@kitschensync.net"}]
+description = "An automated call attendant and call blocker using a USR5637 or CX930xx modem"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Other Environment",
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Flask",
+    "Topic :: Communications :: Telephony",
+    "Topic :: Home Automation",
+]
+urls = {Homepage = "https://thess.github.io/callattendant/"}
+requires-python = ">=3.11"
+dependencies = [
+    "Flask>=3.0.1",
+    "waitress>=3.0.2",
+    "flask-paginate>=2023.10.24",
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.4",
+    "lxml>=6.0.2",
+    "bs4>=0.0.2",
+    "soupsieve>=2.5",
+    "Werkzeug>=3.0.1",
+    "Jinja2>=3.1.3",
+    "itsdangerous>=2.1.2",
+    "MarkupSafe>=2.1.4",
+    "PyYAML>=6.0.1",
+    "blinker>=1.7.0",
+    "click>=8.1.7",
+    "pygments>=2.17.2",
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+mqtt = [
+    "paho-mqtt>=2.1.0",
+]
+pigpio = [
+    "gpiozero>=2.0.1",
+    "pigpio>=1.78",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.scripts]
+callattendant = "callattendant.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+script-files = [
+    "bin/start-callattendant",
+    "bin/stop-callattendant",
+    "bin/restart-callattendant",
+    "bin/monitor-callattendant",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests"]
+namespaces = false
+
+[build-system]
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+

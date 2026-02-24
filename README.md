@@ -115,7 +115,7 @@ Sometimes additionally AT!4892=FF may be required.`
 
 ## Software setup
 
-The installation requires Python3.5 or later.
+The installation requires Python3.11 or later.
 
 ### Setup a Virtual Environment
 
@@ -141,7 +141,7 @@ $ which python
 .../venv/bin/python
 
 $ python --version
-Python 3.9.2
+Python 3.11.
 ```
 
 Installation of the __callattendant__ software will be placed within the virtual environment folder (under `lib/python3.x/site-packages` to be exact). The virtual environment, when activated, alters your _PATH_ so that the system looks for python and its packages within this folder hierarchy.
@@ -161,11 +161,15 @@ $ sudo apt install libxml2-dev libxslt-dev
 # Option 1: Using pip (from PyPi.org)
 $ source venv/bin/activate
 $ pip3 install callattendant
+# alternatively, if you intend MQTT support, you can install with the MQTT extra:
+$ pip3 install callattendant[mqtt]
+# or if you are using GPIO indicators (RPi), you can install with the GPIO extra:
+$ pip3 install callattendant[pigpio]
 
 # Option 2: From source (download source tarball from github or clone repository)
 $ cd <download directory>
 $ source <virtualenv-location>/venv/bin/activate
-$ python3 setup.py install
+$ python3 -m pip install .
 
 # Option 3: Using pip (latest from github.com)
 $ source venv/bin/activate
