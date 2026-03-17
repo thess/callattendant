@@ -217,6 +217,7 @@ class Modem(object):
         TIME = "TIME"
         NAME = "NAME"
         NMBR = "NMBR"
+        MESG = "MESG"
 
         # Testing variables
         debugging = self.config["DEBUG"]
@@ -225,16 +226,20 @@ class Modem(object):
         logfile = None
 
         # validate the caller ID data pattern
-        def cid_validate(val, key, regex):
+        def cid_validate(data, key, regex):
+            val = data.split('=')[1].strip()
+            if not val:
+                print("Empty {} value".format(key))
+                return False, ''
             try:
                 if re.match(regex, val):
-                    return True
+                    return True, val
                 else:
                     print("Invalid {}: {}".format(key, val))
             except Exception as e:
                 print("Error in {}: {}".format(key, e))
             # Return False if the value is not valid
-            return False
+            return False, ''
 
         # Handle incoming calls
         try:
@@ -267,6 +272,10 @@ class Modem(object):
 
                     self._serial.timeout = save_timeout
 
+                # Ignore MESG and other non-caller info messages from the telco
+                if MESG in modem_data:
+                    continue
+
                 # Some telcos do not supply all the caller info fields.
                 # If the modem timed out (empty modem data) or another RING occured,
                 # then look for and handle a partial set of caller info.
@@ -275,7 +284,7 @@ class Modem(object):
                     if call_record.get(NMBR):
                         now = datetime.now()
                         if not call_record.get(DATE):
-                            call_record[DATE] = now.strftime("%m%d")
+                            call_record[DATE] = now.strftime("%m%d%Y")
                         if not call_record.get(TIME):
                             call_record[TIME] = now.strftime("%H%M")
                         if not call_record.get(NAME):
@@ -308,8 +317,8 @@ class Modem(object):
                             NAME = [optional] 2..15 letters, numbers, spaces, dot or comma. Must start with letter.
                         """
                         if DATE in modem_data:
-                            val = modem_data.split('=')[1].strip()
-                            if cid_validate(val, DATE, r"^\d{4,6}$"):
+                            ok, val = cid_validate(modem_data, DATE, r"^\d{4,6}$")
+                            if ok:
                                 # If the date is only 4 characters long, append the current year (for leap years)
                                 if len(val) == 4:
                                     val += str(datetime.now().year)
@@ -321,8 +330,8 @@ class Modem(object):
                                     print("Invalid DATE: {}".format(val))
 
                         elif TIME in modem_data:
-                            val = modem_data.split('=')[1].strip()
-                            if cid_validate(val, TIME, r'^\d{4}$'):
+                            ok, val = cid_validate(modem_data, TIME, r'^\d{4}$')
+                            if ok:
                                 try:
                                     # Use strptime to validate the time (throws ValueError if invalid)
                                     datetime.strptime(val, '%H%M')
@@ -331,22 +340,25 @@ class Modem(object):
                                     print("Invalid TIME: {}".format(val))
 
                         elif NAME in modem_data:
-                            val = modem_data.split('=')[1].strip()
-                            if cid_validate(val, NAME, r'^[A-Za-z][A-Za-z0-9 .,]{1,14}$'):
+                            ok, val = cid_validate(modem_data, NAME, r'^[A-Za-z][A-Za-z0-9 .,]{1,14}$')
+                            if ok:
                                 call_record[NAME] = val
                             else:
                                 call_record[NAME] = "Private/Unknown"
 
                         elif NMBR in modem_data:
-                            val = modem_data.split('=')[1].strip()
-                            if cid_validate(val, NMBR, r'^\d{4,17}$'):
+                            ok, val = cid_validate(modem_data, NMBR, r'^\d{4,17}$')
+                            if ok:
                                 call_record[NMBR] = val
                             else:
                                 call_record[NMBR] = "0000000000"
                     else:
                         # Caller ID validation is disabled
                         if DATE in modem_data:
-                            call_record[DATE] = modem_data.split('=')[1].strip()
+                            val = modem_data.split('=')[1].strip()
+                            if len(val) == 4:
+                                val += str(datetime.now().year)
+                            call_record[DATE] = val
                         elif TIME in modem_data:
                             call_record[TIME] = modem_data.split('=')[1].strip()
                         elif NAME in modem_data:
