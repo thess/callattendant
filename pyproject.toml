@@ -5,7 +5,7 @@
 
 [project]
 name = "callattendant"
-version = "2.3.1"
+version = "2.3.2"
 license = "MIT"
 authors = [{name = "Ted Hess", email = "thess@kitschensync.net"}]
 description = "An automated call attendant and call blocker using a USR5637 or CX930xx modem"
@@ -21,7 +21,7 @@ classifiers = [
 urls = {Homepage = "https://thess.github.io/callattendant/"}
 requires-python = ">=3.11"
 dependencies = [
-    "Flask>=3.0.1",
+    "Flask>=3.1.3",
     "waitress>=3.0.2",
     "flask-paginate>=2023.10.24",
     "beautifulsoup4>=4.12.3",
