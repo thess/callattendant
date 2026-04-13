@@ -23,9 +23,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-#import pydevd_pycharm
-#pydevd_pycharm.settrace('m4800', port=6969, stdoutToServer=True, stderrToServer=True)
-
 import os
 import sys
 import queue
@@ -33,6 +30,7 @@ import signal
 import sqlite3
 import time
 
+from importlib.metadata import version
 from datetime import datetime
 from pprint import pprint
 from shutil import copyfile
@@ -484,7 +482,7 @@ def get_args(argv):
     data_path = None
     create_folder = False
     try:
-        opts, args = getopt.getopt(argv[1:], "hc:d:f", ["help", "config=", "data-path=", "create-folder"])
+        opts, args = getopt.getopt(argv[1:], "hc:d:fv", ["help", "config=", "data-path=", "create-folder", "version"])
         if args:
             raise getopt.GetoptError("unhandled arguments: {}".format(args))
     except getopt.GetoptError as e:
@@ -501,6 +499,9 @@ def get_args(argv):
             data_path = arg
         elif opt in ("-f", "--create-folder"):
             create_folder = True
+        elif opt in ("-v", "--version"):
+            print("Callattendant v{}".format(version("callattendant")))
+            sys.exit()
         else:
             raise RuntimeError("Invalid command line option: {} {}".format(opt, arg))
 
@@ -517,6 +518,7 @@ def show_syntax():
     print("-d, --data-path [FOLDER]\t path to data and configuration files")
     print("-f, --create-folder\t\t create the data-path folder if it does not exist")
     print("-h, --help\t\t\t displays this help text")
+    print("-v, --version\t\t\t displays version and exits")
 
 
 def main(argv):
