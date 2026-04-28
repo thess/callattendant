@@ -5,7 +5,7 @@
 
 [project]
 name = "callattendant"
-version = "2.3.3"
+version = "2.4.0"
 license = "MIT"
 authors = [{name = "Ted Hess", email = "thess@kitschensync.net"}]
 description = "An automated call attendant and call blocker using a USR5637 or CX930xx modem"
@@ -26,7 +26,7 @@ dependencies = [
     "flask-paginate>=2023.10.24",
     "beautifulsoup4>=4.12.3",
     "requests>=2.33.0",
-    "lxml>=6.0.2",
+    "lxml>=6.1.0",
     "bs4>=0.0.2",
     "soupsieve>=2.5",
     "Werkzeug>=3.0.1",

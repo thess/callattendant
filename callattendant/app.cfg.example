@@ -172,6 +172,12 @@ BLOCKED_ACTIONS = ("answer", "greeting")
 #   Example: "Your number has been blocked."
 BLOCKED_GREETING_FILE = "blocked_greeting.wav"
 
+# *** Application NOTE: call-waiting  ***
+# The XXX_RINGS_BEFORE_ANSWER settings can affect the interaction with "call-waiting" services
+# XXX_RINGS_ANSWER = 0 can trigger an action if CID data is received before the 1st ring
+#   This will be the case if the call-waiting service sends CID data alone (no RING).
+# XXX_RINGS_ANSWER > 0 will not trigger any action without at least 1 ring event.
+
 # BLOCKED_RINGS_BEFORE_ANSWER: The number of rings to wait before answering
 #   Example: 0 to act immediately, possibly before your local phone rings.
 BLOCKED_RINGS_BEFORE_ANSWER = 0

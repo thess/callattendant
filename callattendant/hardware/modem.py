@@ -127,6 +127,8 @@ TEST_DATA = [
     b"RING", b"NMBR = 1234567890", b""
 ]
 
+# Audio buffer size
+CHUNK_AUDIO = 1024
 
 class Modem(object):
     """
@@ -237,7 +239,7 @@ class Modem(object):
                 else:
                     print("Invalid {}: {}".format(key, val))
             except Exception as e:
-                print("Error in {}: {}".format(key, e))
+                pprint("Error in {}: {}".format(key, e))
             # Return False if the value is not valid
             return False, ''
 
@@ -245,7 +247,7 @@ class Modem(object):
         try:
             # This loop reads incoming data from the serial port and
             # posts the caller data to the handle_caller function
-            call_record = {}
+            call_record = {'RINGS': 0}
             while not self._stop_flag:
                 modem_data = b''
 
@@ -291,11 +293,8 @@ class Modem(object):
                             call_record[NAME] = "Unknown"
                     else:
                         # Othewise, throw away any partial data without a number
-                        # that was received between RINGs/timeouts.
-                        # Note: in UK and other regions that do not supply a NAME,
-                        # you could set the default name here, for example:
-                        #   call_record{NAME: "Unknown"}
-                        call_record = {}
+                        # that was received between RINGs/timeouts. (Preserve ring count)
+                        call_record = {'RINGS': call_record['RINGS']}
 
                 # Process the modem data
                 if modem_data != '':
@@ -306,6 +305,7 @@ class Modem(object):
 
                     # Ring notification
                     if RING in modem_data:
+                        call_record['RINGS'] += 1
                         self.ring()
                     elif self.config["ENABLE_CALLERID_VALIDATION"]:
                         """
@@ -369,7 +369,7 @@ class Modem(object):
                 # Test for a complete set of caller ID data
                 # https://stackoverflow.com/questions/1285911/how-do-i-check-that-multiple-keys-are-in-a-dict-in-a-single-pass
                 if all(k in call_record for k in (DATE, TIME, NAME, NMBR)):
-                    # Already handled first RING (don't count twice)
+                    # Already handled RINGS before queueing the call record.
                     self.ring_event.clear()
                     # Queue caller for screening
                     print("> Queueing call {} for processing".format(call_record[NMBR]))
@@ -377,7 +377,7 @@ class Modem(object):
                     # Note: in UK and regions that do not supply a NAME,
                     # you could set the default name here, for example:
                     #   call_record{NAME: "Unknown"}
-                    call_record = {}
+                    call_record = {'RINGS': 0}
 
                 # Yield to other threads
                 time.sleep(0.0001)
@@ -437,6 +437,10 @@ class Modem(object):
             self._serial.reset_input_buffer()
             self._serial.reset_output_buffer()
 
+            # Disconnect DTE from the line and return to on-hook state
+            if not self._send(TELEPHONE_ANSWERING_DEVICE_ON_HOOK):
+                print("* Error: Unable to put modem on hook")
+
             if not self._send(GO_ON_HOOK):
                 raise RuntimeError("Failed to hang up the call.")
             # ~ if not self._send(RESET):
@@ -470,32 +474,29 @@ class Modem(object):
         return_data = None
         self._serial.cancel_read()
         with self._lock:
-
-            # Setup modem for transmitting audio data
-            if not self._send(ENTER_VOICE_MODE):
-                print("* Error: Failed to put modem into voice mode.")
-                return False, None
-            if not self._send(SET_VOICE_COMPRESSION):
-                print("* Error: Failed to set compression method and sampling rate specifications.")
-                return False, None
-            if not self._send(TELEPHONE_ANSWERING_DEVICE_OFF_HOOK):
-                print("* Error: Unable put modem into telephone answering device mode.")
-                return False, None
-
-            # wait before we speak
-            time.sleep(1.0)
             # Play Audio File
             with wave.open(audio_file_name, 'rb') as wavefile:
-                chunk = 1024
-                data = wavefile.readframes(chunk)
-                if len(data) > 0:
-                    if not self._send(ENTER_VOICE_TRANSMIT_DATA_STATE, "CONNECT"):
-                        print("* Error: Unable put modem into voice data transmit state.")
-                        return False, None
+                # Fill buffer
+                data = wavefile.readframes(CHUNK_AUDIO)
+
+                # Setup modem for transmitting audio data
+                if not self._send(ENTER_VOICE_MODE):
+                    print("* Error: Failed to put modem into voice mode.")
+                    return False, None
+                if not self._send(SET_VOICE_COMPRESSION):
+                    print("* Error: Failed to set compression method and sampling rate specifications.")
+                    return False, None
+                if not self._send(TELEPHONE_ANSWERING_DEVICE_OFF_HOOK):
+                    print("* Error: Unable put modem into telephone answering device mode.")
+                    return False, None
+                if not self._send(ENTER_VOICE_TRANSMIT_DATA_STATE, "CONNECT"):
+                    print("* Error: Unable put modem into voice data transmit state.")
+                    return False, None
+
                 # pump out message
                 while data != b'':
                     self._serial.write(data)
-                    data = wavefile.readframes(chunk)
+                    data = wavefile.readframes(CHUNK_AUDIO)
                     # Check for DCE notifications
                     if self._serial.in_waiting > 1:
                         modem_data = self._serial.read(self._serial.in_waiting).decode("utf-8", "ignore").strip()
@@ -529,7 +530,11 @@ class Modem(object):
 
                                 print(">> DCE Notification: <DLE>{}".format(modem_data[1]))
 
+                # Terminate voice transmission mode
                 self._send(DTE_END_VOICE_DATA_TX)
+                # Disconnect if aborting playback due to off-hook or dial/busy tone
+                if return_data in ('off-hook', 'hang-up'):
+                    self._send(TELEPHONE_ANSWERING_DEVICE_ON_HOOK)
 
         return True, return_data
 
@@ -573,7 +578,6 @@ class Modem(object):
             # Record Audio File
             start_time = datetime.now()
             record_timeout = self.config["VOICE_MAIL_RECORD_TIME"]
-            CHUNK = 1024
             audio_frames = 0
             # Define the range of amplitude values that are to be considered silence.
             # In the 8-bit audio data, silence is \0x7f or \0x80 (127.5 rounded up or down)
@@ -591,7 +595,7 @@ class Modem(object):
 
                     while True:
                         # Read audio data from the Modem
-                        audio_data = self._serial.read(CHUNK)
+                        audio_data = self._serial.read(CHUNK_AUDIO)
 
                         # Scan the audio data for DLE codes from modem
                         idx = audio_data.find(DLE_BYTE_CODE)
@@ -654,7 +658,7 @@ class Modem(object):
                 print(">> Recording stopped after {} seconds.".format((datetime.now() - start_time).seconds))
 
             except Exception as e:
-                print(">> Error in record_audio: ", e)
+                pprint(">> Error in record_audio: {}".format(e))
                 success = False
             finally:
                 # Clear input buffer before sending commands else its
@@ -788,7 +792,10 @@ class Modem(object):
         with self._lock:
             try:
                 if self.config["DEBUG"]:
-                    print("_send_and_read('{}','{}',{})".format(command, expected_response, response_timeout))
+                    if command[0] == DLE_CODE:
+                        print("_send(<DLE>0x{:02X})".format(ord(command[1])))
+                    else:
+                        print("_send_and_read('{}','{}',{})".format(command, expected_response, response_timeout))
 
                 self._serial.write((command + '\r').encode())
                 self._serial.flush()
@@ -796,7 +803,7 @@ class Modem(object):
                 success, result = self._read_response(expected_response, response_timeout)
                 return (success, result)
             except Exception as e:
-                print("Error in _send_and_read('{}','{}',{}): {}".format(command, expected_response, response_timeout, e))
+                pprint("Error in _send_and_read('{}','{}',{}): {}".format(command, expected_response, response_timeout, e))
             return False, None
 
     def _read_response(self, expected_response, response_timeout_secs):
@@ -838,7 +845,7 @@ class Modem(object):
                     return (False, response)
 
         except Exception as e:
-            print("Error in _read_response('{}',{}): {}".format(expected_response, response_timeout_secs, e))
+            pprint("Error in _read_response('{}',{}): {}".format(expected_response, response_timeout_secs, e))
         return (False, None)
 
     def _open_serial_port(self):
@@ -869,7 +876,7 @@ class Modem(object):
                     self._init_serial_port(com_port)
                     self._serial.open()
                 except Exception as e:
-                    print("Warning: _open_serial_port failed: {}, {}".format(self._serial.port, e))
+                    pprint("Warning: _open_serial_port failed: {}, {}".format(self._serial.port, e))
                     success = False
                 else:
                     # Detect the modem model
@@ -896,7 +903,7 @@ class Modem(object):
                 self._serial.close()
                 self.is_open = False
         except Exception as e:
-            print("Error: _close_serial_port failed: {}".format(e))
+            pprint("Error: _close_serial_port failed: {}".format(e))
 
     def _init_serial_port(self, com_port):
         """
@@ -997,6 +1004,6 @@ class Modem(object):
             self._send(GET_MODEM_SETTINGS)
 
         except Exception as e:
-            print("Error: _init_modem failed: {}".format(e))
+            pprint("Error: _init_modem failed: {}".format(e))
             return False
         return True

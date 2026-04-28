@@ -247,7 +247,7 @@ class CallAttendant(object):
                     rings_before_answer = blocked["rings_before_answer"]
 
                 # Waits for the callee to answer the phone, if configured to do so.
-                ok_to_answer = self.wait_for_rings(rings_before_answer)
+                ok_to_answer = self.wait_for_rings(caller['RINGS'], rings_before_answer)
 
                 # Answer the call!
                 if ok_to_answer and "answer" in actions:
@@ -348,9 +348,13 @@ class CallAttendant(object):
         """
         pass
 
-    def wait_for_rings(self, rings_before_answer):
+    def wait_for_rings(self, rings_in_queue, rings_before_answer):
         """
         Waits for the given number of rings to occur.
+        If rings_in_queue==0 then CID may be from call-waiting notification.
+        Setting rings_before_answer=1 prevents pick-up in this case.
+        :param rings_in_queue:
+            rings seen before queuing the call
         :param rings_before_answer:
             the number of rings to wait for.
         :return:
@@ -362,8 +366,10 @@ class CallAttendant(object):
         RING_CADENCE = 6.0  # secs
         RING_WAIT_SECS = RING_CADENCE + (RING_CADENCE * 0.5)
         ok_to_answer = True
-        ring_count = 1  # Already had at least 1 ring to get here
+        # Start with the rings queued by the modem
+        ring_count = rings_in_queue
         last_ring = datetime.now()
+
         while ring_count < rings_before_answer:
             if not self._caller_queue.empty():
                 # Skip this call and process the next one
@@ -384,6 +390,7 @@ class CallAttendant(object):
                 print(" > > > Ringing stopped: Caller hung up or callee answered")
                 ok_to_answer = False
                 break
+
         return ok_to_answer
 
 
@@ -432,6 +439,8 @@ def make_config(filename=None, datapath=None, create_folder=False):
     config.normalize_paths()
     # Initialize the data_path folder contents using the normalized paths
     init_data_path(config)
+    # lastly, add version info to config
+    config["VERSION"] = version("callattendant")
     # Print the configuration if DEBUG
     if config["DEBUG"]:
         config.pretty_print()
