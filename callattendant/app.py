@@ -400,7 +400,7 @@ def make_config(filename=None, datapath=None, create_folder=False):
         :param filename:
             The filename of a python configuration file.
             This can either be an absolute filename or a filename
-            relative to the datapath folder.
+            relative to the datapath folder. Default: 'app.cfg'
         :param datapath:
             A folder for the database, messages and configuration files.
             It will be created if it doesn't exist.
@@ -408,6 +408,8 @@ def make_config(filename=None, datapath=None, create_folder=False):
             A config dict object
     """
     # Establish the default configuration settings
+    if not filename:
+        filename = 'app.cfg'
     root_path = os.path.dirname(os.path.realpath(__file__))
     data_path = datapath
     if data_path is None:
