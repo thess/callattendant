@@ -31,6 +31,7 @@ from screening.blacklist import Blacklist
 from screening.whitelist import Whitelist
 from screening.nomorobo import NomoroboService
 from screening.shouldianswer import ShouldIAnswer
+from screening.twilio import TwilioService
 import yaml
 
 
@@ -128,6 +129,14 @@ class CallScreener(object):
             self._blockservice = NomoroboService(config['NOMOROBO_USERNAME'], config['NOMOROBO_PASSWORD'],
                                                 config["BLOCK_SERVICE_THRESHOLD"])
             print("NomoroboService Initialized as CallScreener") if self.config["DEBUG"] else None
+        elif bs == "TWILIO":
+            if(config["TWILIO_ACCOUNT_SID"] is None or config["TWILIO_AUTH_TOKEN"] is None):
+                print("Twilio account SID and auth token must be set in config.yaml")
+                print("No 3rd Party CallScreener Initialized")
+            else:
+                self._blockservice = TwilioService(config["BLOCK_SERVICE_THRESHOLD"], config["TWILIO_ACCOUNT_SID"],
+                                               config["TWILIO_AUTH_TOKEN"])
+            print("TwilioService Initialized as CallScreener") if self.config["DEBUG"] else None
         elif bs == "SHOULDIANSWER":
             self._blockservice = ShouldIAnswer(config["BLOCK_SERVICE_THRESHOLD"])
             print("ShouldIAnswer Initialized as CallScreener") if self.config["DEBUG"] else None
