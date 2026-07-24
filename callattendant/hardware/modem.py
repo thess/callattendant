@@ -670,7 +670,7 @@ class Modem(object):
                 if not self._send(DTE_END_VOICE_DATA_RX, DLE_CODE + ETX_CODE):
                     print("* Error: Unable to signal end of data receive state")
                 # OK indicates return to command mode
-                retval, response = self._read_response("OK", 5)
+                retval, response = self._read_response("OK", 2)
                 if not retval:
                     print("* Error: Unable to return to command mode")
 
@@ -793,7 +793,8 @@ class Modem(object):
             try:
                 if self.config["DEBUG"]:
                     if command[0] == DLE_CODE:
-                        print("_send(<DLE>0x{:02X})".format(ord(command[1])))
+                        print("_send({}})".format("".join(map(lambda x: '<DLE>' if x == DLE_CODE else
+                                                                        '<ETX>' if x == ETX_CODE else x, command))))
                     else:
                         print("_send_and_read('{}','{}',{})".format(command, expected_response, response_timeout))
 

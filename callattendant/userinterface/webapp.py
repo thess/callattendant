@@ -287,9 +287,14 @@ def dashboard():
 
 @app.route('/about', methods=['GET'])
 def about():
-    # El-cheapo version number display
-    flash('Call Attendant version: ' + current_app.config["MASTER_CONFIG"]["VERSION"])
-    return redirect(request.referrer, code=303)  # Other
+    v = current_app.config["MASTER_CONFIG"]["VERSION"]
+    if request.args.get("raw") is None:
+        # El-cheapo version number display
+        flash('Call Attendant version: ' + v)
+        return redirect(request.referrer, code=303)  # Other
+    else:
+        # Supply '?raw' to return just version
+        return v
 
 @app.route('/calls', methods=['GET', 'POST'])
 def calls():

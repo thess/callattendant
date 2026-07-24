@@ -5,7 +5,7 @@
 
 [project]
 name = "callattendant"
-version = "2.4.1"
+version = "2.4.2"
 license = "MIT"
 authors = [{name = "Ted Hess", email = "thess@kitschensync.net"}]
 description = "An automated call attendant and call blocker using a USR5637 or CX930xx modem"
