@@ -44,6 +44,8 @@ default_config = {
     "NOMOROBO_PASSWORD": "",
 
     "BLOCK_SERVICE_THRESHOLD": 2,
+    "TWILIO_ACCOUNT_SID": "",
+    "TWILIO_AUTH_TOKEN": "",
 
     "CALLERID_PATTERNS_FILE": 'cid_patterns.yaml',
 
@@ -227,7 +229,7 @@ class Config(dict):
         if not isinstance(self["BLOCK_ENABLED"], bool):
             print("* BLOCK_ENABLED should be a bool: {}".format(type(self["BLOCK_ENABLED"])))
             success = False
-        if self["BLOCK_SERVICE"] not in ("", "NOMOROBO", "SHOULDIANSWER"):
+        if self["BLOCK_SERVICE"] not in ("", "NOMOROBO", "SHOULDIANSWER", "TWILIO"):
             print("* BLOCK_SERVICE is invalid: {}".format(self["BLOCK_SERVICE"]))
             success = False
         if self["BLOCK_SERVICE"] == "NOMOROBO":
@@ -241,6 +243,11 @@ class Config(dict):
                 (self["BLOCK_SERVICE_THRESHOLD"] != 1 and self["BLOCK_SERVICE_THRESHOLD"] != 2)):
             print("* BLOCK_SERVICE_THRESHOLD should be 1 or 2: {}".format(self["BLOCK_SERVICE_THRESHOLD"]))
             success = False
+
+        if self["BLOCK_SERVICE"]=="TWILIO":
+            if self["TWILIO_ACCOUNT_SID"] == "" or self["TWILIO_AUTH_TOKEN"] == "":
+                print("* TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required if BLOCK_SERVICE is TWILIO")
+                success = False
 
         for mode in self["SCREENING_MODE"]:
             if mode not in ("whitelist", "blacklist"):

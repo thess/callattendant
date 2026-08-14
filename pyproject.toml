@@ -38,6 +38,7 @@ dependencies = [
     "click>=8.1.7",
     "pygments>=2.20.0",
     "pyserial>=3.5",
+    "twilio~=9.10.9",
 ]
 
 [project.optional-dependencies]
