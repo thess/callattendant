@@ -43,7 +43,7 @@ class Whitelist(object):
         self.config = config
 
         if self.config["DEBUG"]:
-            print("Initializing Whitelist")
+            print("Initializing the permitted list")
 
         sql = """CREATE TABLE IF NOT EXISTS Whitelist (
             PhoneNo TEXT PRIMARY KEY,
@@ -66,7 +66,7 @@ class Whitelist(object):
             self.add_caller(caller, "Whitelist test")
 
         if self.config["DEBUG"]:
-            print("Whitelist initialized")
+            print("Permitted list initialized")
 
     def add_caller(self, call_record, reason=""):
         """
@@ -91,10 +91,10 @@ class Whitelist(object):
             self.db.execute(query, arguments)
             self.db.commit()
             if self.config["DEBUG"]:
-                print("New whitelist entry added")
+                print("New permitted list entry added")
                 pprint(arguments)
         except Exception as e:
-            print("** Failed to add caller to whitelist:")
+            print("** Failed to add caller to the permitted list:")
             pprint(e)
             return False
         return True
@@ -110,11 +110,11 @@ class Whitelist(object):
             self.db.execute(query, arguments)
             self.db.commit()
         except Exception as e:
-            print("** Failed to delete caller from whitelist:")
+            print("** Failed to delete caller from the permitted list:")
             pprint(e)
             return False
         if self.config["DEBUG"]:
-            print("Whitelist entry removed")
+            print("Permitted list entry removed")
             pprint(arguments)
         return True
 
@@ -138,11 +138,12 @@ class Whitelist(object):
             self.db.execute(sql, arguments)
             self.db.commit()
         except Exception as e:
-            print("** Failed to update caller in whitelist:")
+            print("** Failed to update caller in the permitted list:")
             pprint(e)
             return False
+
         if self.config["DEBUG"]:
-            print("Whitelist entry updated")
+            print("Permitted list entry updated")
             pprint(arguments)
         return True
 

@@ -793,7 +793,7 @@ class Modem(object):
             try:
                 if self.config["DEBUG"]:
                     if command[0] == DLE_CODE:
-                        print("_send({}})".format("".join(map(lambda x: '<DLE>' if x == DLE_CODE else
+                        print("_send({})".format("".join(map(lambda x: '<DLE>' if x == DLE_CODE else
                                                                         '<ETX>' if x == ETX_CODE else x, command))))
                     else:
                         print("_send_and_read('{}','{}',{})".format(command, expected_response, response_timeout))

@@ -246,8 +246,15 @@ class CallAttendant(object):
                     greeting = blocked_greeting_file
                     rings_before_answer = blocked["rings_before_answer"]
 
-                # Waits for the callee to answer the phone, if configured to do so.
-                ok_to_answer = self.wait_for_rings(caller['RINGS'], rings_before_answer)
+                # call_no is None if the call could not be logged to the database.
+                if call_no is None:
+                    print("** Error logging call. Skipping call answer.")
+                    # Wait at most 12 rings before giving up.
+                    _ = self.wait_for_ringss(caller['RINGS'], 12)
+                    ok_to_answer = False
+                else:
+                    # Waits for the callee to answer the phone, if configured to do so.
+                    ok_to_answer = self.wait_for_rings(caller['RINGS'], rings_before_answer)
 
                 # Answer the call!
                 if ok_to_answer and "answer" in actions:

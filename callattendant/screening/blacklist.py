@@ -42,7 +42,7 @@ class Blacklist(object):
         self.config = config
 
         if self.config["DEBUG"]:
-            print("Initializing Blacklist")
+            print("Initializing the blocked list")
 
         sql = '''
             CREATE TABLE IF NOT EXISTS Blacklist (
@@ -51,9 +51,14 @@ class Blacklist(object):
                 Reason TEXT,
                 SystemDateTime TEXT);
             '''
-        curs = self.db.cursor()
-        curs.executescript(sql)
-        curs.close()
+        try:
+            curs = self.db.cursor()
+            curs.executescript(sql)
+            curs.close()
+        except Exception as e:
+            print("** Failed to create the blocked list table:")
+            pprint(e)
+            exit(1)
 
         if self.config["TESTING"]:
             # Add a record to the test db;
@@ -68,7 +73,7 @@ class Blacklist(object):
             self.add_caller(caller)
 
         if self.config["DEBUG"]:
-            print("Blacklist initialized")
+            print("Blocked list initialized")
 
     def add_caller(self, callerid, reason=""):
         """
@@ -96,7 +101,7 @@ class Blacklist(object):
                 print("New blacklist entry added")
                 pprint(arguments)
         except Exception as e:
-            print("** Failed to add caller to blacklist:")
+            print("** Failed to add caller to the blocked list:")
             pprint(e)
             return False
         return True
@@ -121,12 +126,12 @@ class Blacklist(object):
             self.db.execute(sql, arguments)
             self.db.commit()
         except Exception as e:
-            print("** Failed to update caller in blacklist:")
+            print("** Failed to update caller in the blocked list:")
             pprint(e)
             return False
 
         if self.config["DEBUG"]:
-            print("Blacklist entry updated")
+            print("Blocked list entry updated")
             pprint(arguments)
         return True
 
@@ -138,11 +143,11 @@ class Blacklist(object):
             self.db.execute(query, arguments)
             self.db.commit()
         except Exception as e:
-            print("** Failed to delete caller from blacklist:")
+            print("** Failed to delete caller from the blocked list:")
             pprint(e)
             return False
         if self.config["DEBUG"]:
-            print("blacklist entry removed")
+            print("Blocked list entry removed")
             pprint(arguments)
         return True
 

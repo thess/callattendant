@@ -38,8 +38,13 @@ class CallLogger(object):
                      datetime.strptime(callerid['TIME'], '%H%M').strftime('%I:%M %p'),
                      (datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:19])]
 
-        self.db.execute(sql, arguments)
-        self.db.commit()
+        try:
+            self.db.execute(sql, arguments)
+            self.db.commit()
+        except Exception as e:
+            print("** Error logging caller: {}".format(callerid['NMBR']))
+            pprint(e)
+            return None
 
         # Return the CallLogID
         query = "select last_insert_rowid()"

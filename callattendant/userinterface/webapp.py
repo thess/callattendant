@@ -518,23 +518,23 @@ def callers_manage(call_no):
         number = transform_number(request.form['phone_no'])
         if request.form['action'] == 'add-permit':
             caller = {'NMBR': number, 'NAME': request.form['name']}
-            print(" >> Adding " + caller['NAME'] + " to whitelist")
+            print(" >> Adding " + caller['NAME'] + " to the permitted list")
             whitelist = Whitelist(get_db(), current_app.config)
             whitelist.add_caller(caller, request.form['reason'])
 
         elif request.form['action'] == 'remove-permit':
-            print(" >> Removing " + number + " from whitelist")
+            print(" >> Removing " + number + " from the permitted list")
             whitelist = Whitelist(get_db(), current_app.config)
             whitelist.remove_number(number)
 
         elif request.form['action'] == 'add-block':
             caller = {'NMBR': number, 'NAME': request.form['name']}
-            print(" >> Adding " + caller['NAME'] + " to blacklist")
+            print(" >> Adding " + caller['NAME'] + " to the blocked list")
             blacklist = Blacklist(get_db(), current_app.config)
             blacklist.add_caller(caller, request.form['reason'])
 
         elif request.form['action'] == 'remove-block':
-            print(" >> Removing " + number + " from blacklist")
+            print(" >> Removing " + number + " from the blocked list")
             blacklist = Blacklist(get_db(), current_app.config)
             blacklist.remove_number(number)
         # Keep track of the number of posts so we can to unwind the history
@@ -659,7 +659,7 @@ def callers_blocked_add():
     number = transform_number(request.form["phone"])
     caller['NMBR'] = number
     caller['NAME'] = request.form["name"]
-    print("Adding " + number + " to blacklist")
+    print("Adding " + number + " to the blocked list")
     blacklist = Blacklist(get_db(), current_app.config)
     success = blacklist.add_caller(caller, request.form["reason"])
     if success:
@@ -675,9 +675,10 @@ def callers_blocked_update(phone_no):
     Update the blacklist entry associated with the phone number.
     """
     number = transform_number(phone_no)
-    print("Updating " + number + " in blacklist")
+    print("Updating " + number + " in the blocked list")
     blacklist = Blacklist(get_db(), current_app.config)
-    blacklist.update_number(number, request.form['name'], request.form['reason'])
+    msg_prefix = "Updated" if blacklist.update_number(number, request.form['name'], request.form['reason']) else "Failed to update"
+    flash("{} {} in the blocked list".format(msg_prefix, format_phone_no(number, current_app.config["MASTER_CONFIG"])))
 
     return redirect("/callers/blocked", code=303)
 
@@ -689,9 +690,10 @@ def callers_blocked_delete(phone_no):
     """
     number = transform_number(phone_no)
 
-    print("Removing " + number + " from blacklist")
+    print("Removing " + number + " from the blocked list")
     blacklist = Blacklist(get_db(), current_app.config)
-    blacklist.remove_number(number)
+    msg_prefix = "Removed" if blacklist.remove_number(number) else "Failed to remove"
+    flash("{} {} from the blocked list".format(msg_prefix, format_phone_no(number, current_app.config["MASTER_CONFIG"])))
 
     return Response(status=200)
 
@@ -781,7 +783,7 @@ def callers_permitted_add():
     number = transform_number(request.form['phone'])
     caller['NMBR'] = number
     caller['NAME'] = request.form['name']
-    print("Adding " + number + " to whitelist")
+    print("Adding " + number + " to the permitted list")
     whitelist = Whitelist(get_db(), current_app.config)
     success = whitelist.add_caller(caller, request.form['reason'])
     if success:
@@ -905,9 +907,10 @@ def callers_permitted_update(phone_no):
     """
     number = transform_number(phone_no)
 
-    print("Updating " + number + " in whitelist")
+    print("Updating " + number + " in the permitted list")
     whitelist = Whitelist(get_db(), current_app.config)
-    whitelist.update_number(number, request.form['name'], request.form['reason'])
+    msg_prefix = "Updated" if whitelist.update_number(number, request.form['name'], request.form['reason']) else "Failed to update"
+    flash("{} {} in the permitted list".format(msg_prefix, format_phone_no(number, current_app.config["MASTER_CONFIG"])))
 
     return redirect("/callers/permitted", code=303)
 
@@ -919,9 +922,10 @@ def callers_permitted_delete(phone_no):
     """
     number = transform_number(phone_no)
 
-    print("Removing " + number + " from whitelist")
+    print("Removing " + number + " from the permitted list")
     whitelist = Whitelist(get_db(), current_app.config)
-    whitelist.remove_number(number)
+    msg_prefix = "Removed" if whitelist.remove_number(number) else "Failed to remove"
+    flash("{} {} from the permitted list".format(msg_prefix, format_phone_no(number, current_app.config["MASTER_CONFIG"])))
 
     return Response(status=200)
 

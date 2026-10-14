@@ -38,7 +38,7 @@ class Message(object):
             :param db:
                 The database used within a single thread.
             :config:
-                The applicaiton-wide config object.
+                The application-wide config object.
         """
         self.db = db
         self.config = config
@@ -55,10 +55,14 @@ class Message(object):
                 DateTime TEXT,
                 FOREIGN KEY(CallLogID) REFERENCES CallLog(CallLogID));
         """
-        curs = self.db.execute(sql)
-        self.db.commit()
-        curs.close()
-
+        try:
+            curs = self.db.execute(sql)
+            self.db.commit()
+            curs.close()
+        except Exception as e:
+            print("** Error creating Message table:")
+            pprint(e)
+            exit(1)
         # Get the number of unread messages
         self._update_unplayed_count()
 
@@ -88,15 +92,20 @@ class Message(object):
             filepath,
             (datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:19])
         ]
-        self.db.execute(sql, arguments)
-        self.db.commit()
+        try:
+            self.db.execute(sql, arguments)
+            self.db.commit()
 
-        # Return the MessageID
-        query = "SELECT last_insert_rowid()"
-        curs = self.db.cursor()
-        curs.execute(query)
-        msg_no = curs.fetchone()[0]
-        curs.close()
+            # Return the MessageID
+            query = "SELECT last_insert_rowid()"
+            curs = self.db.cursor()
+            curs.execute(query)
+            msg_no = curs.fetchone()[0]
+            curs.close()
+        except Exception as e:
+            print("** Error adding message record:")
+            pprint(e)
+            return None
 
         self._update_unplayed_count()
 
@@ -136,8 +145,13 @@ class Message(object):
             if success:
                 sql = "DELETE FROM Message WHERE MessageID=:msg_no"
                 arguments = {'msg_no': msg_no}
-                self.db.execute(sql, arguments)
-                self.db.commit()
+                try:
+                    self.db.execute(sql, arguments)
+                    self.db.commit()
+                except Exception as e:
+                    print("** Error deleting message record:")
+                    pprint(e)
+                    return False
 
             if self.config["DEBUG"]:
                 print("Message entry removed")
