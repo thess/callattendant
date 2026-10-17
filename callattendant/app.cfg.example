@@ -113,7 +113,7 @@ PERMIT_NEXT_CALL_FLAG = 'permitnextcall.flag'
 #   blank (service query disabled), only the blacklist and blocked name/number patterns are
 #   used to block numbers.
 #
-#   Example: "NOMOROBO", SHOULDIANSWER, or "" (disabled).
+#   Example: "NOMOROBO", SHOULDIANSWER, TWILIO, or "" (disabled).
 BLOCK_SERVICE = ""
 # NOMOROBO_USERNAME and NOMOROBO_PASSWORD: Your Nomorobo account credentials.
 NOMOROBO_USERNAME = ""
@@ -127,9 +127,23 @@ NOMOROBO_PASSWORD = ""
 # SHOULDIANSWER:
 #   1 = (not used - further analysis of the score in "reviews' section warranted)
 #   2 = Spam - marked as "Negative"
+# TWILIO:
+#   1 = Spam - marked as "Negative"
+#   2 = Doesn't seem to be used.
+#
 # Example: if 2, then items with a score of 2 are considered spam.
 #  if 1, then items with a score of 1 or 2 are considered spam.
-BLOCK_SERVICE_THRESHOLD = 2
+BLOCK_SERVICE_THRESHOLD = 1
+
+# Note about TWILIO:
+#
+#   If using Twilio, you will need a paid twilio account, and will need to add the nomorobo_spam_score add-on
+#   to your account. You will also need to populate the below two settings. They can be found in your twilio dashboard.
+#   Each call to nomorobo costs $0.003 as of 2025.
+#
+# TWILIO_ACCOUNT_SID = "{twilio SID}"
+# TWILIO_AUTH_TOKEN = "{twilio auth token}"
+
 
 # BLOCKED_ACTIONS: A tuple containing following actions:
 #   "ignore" -OR- a combination of the following:
